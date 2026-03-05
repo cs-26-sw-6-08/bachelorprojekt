@@ -11,34 +11,39 @@ grammar cfg
     SEPARATOR   -> WHITE_SPACE+;
 
     INTEGER     -> [1-9] [0-9]* | '0' ;
-    REAL        -> INTEGER? '.' INTEGER  (('e' | 'E') ('+' | '-')? INTEGER)?
-                |  INTEGER ('e' | 'E') ('+' | '-')? INTEGER ;
+    REAL        -> INTEGER? '.' INTEGER;
     NUMBER      -> INTEGER | REAL ;
 
-    STRING -> [a-zA-Z]+;
+    STRING -> '"'[a-zA-Z]'"'+;
     UNIT -> 's'|'m' | 'h' | 'w' | 'kWh';
     BOOL -> 'true' | 'false';
+    TIME -> 't';
   }
   rules
   {
     Program -> Property;
     Property -> (MTLStart';')+;
 
-    MTLStart -> ('not')? ('always' | 'eventually') Interval? Expr; //| 'not''('MTLStart  'until' Interval? Expr ')' | MTLStart 'until' Interval? Expr;
+    MTLStart -> ('not')? ('always' | 'eventually') Interval? Expr | ('not')?'until'Interval?'('Expr','Expr')';
 
-    Interval -> '['Expr','Expr']'; // TODO gør så det kun er artimetisk expressions der er tilladt i intervallet
+    Interval -> '['ExprA','ExprA']';
+    ExprA -> ExprA '+' ExprA1 | ExprA '-' ExprA1 | ExprA1;
+    ExprA1 -> ExprA1 '*' ExprA2 | ExprA1 '/' ExprA2 | ExprA1 '%' ExprA2 | ExprA2;
+    ExprA2 -> '!'ExprA3 | '-'ExprA3;
+    ExprA3 -> '(' ExprA ')' | ExprA4;
+    ExprA4 -> NUMBER UNIT | NUMBER;
 
     Expr   -> ExprV1 '->' Expr | ExprV1;
     ExprV1 -> ExprV1 '|' ExprV2 | ExprV2;
     ExprV2 -> ExprV2 '&' ExprVNew1 | ExprVNew1;
-    ExprVNew1 -> 'not''('ExprV3  'until' Interval? ExprVNew1 ')' | ExprV3  'until' Interval? ExprVNew1 | ExprV3;
+    ExprVNew1 -> ('not')?'until'Interval?'('ExprVNew1','ExprV3')' | ExprV3;
     ExprV3 -> ExprV4 ('==' | '<=' | '>=' | '!=' | '<' | '>') ExprV4 | ExprV4;
     ExprV4 -> ExprV4 '+' ExprV5 | ExprV4 '-' ExprV5 | ExprV5;
     ExprV5 -> ExprV5 '*' ExprV6 | ExprV5 '/' ExprV6 | ExprV5 '%' ExprV6 | ExprV6;
     ExprV6 -> '!'ExprV6 | '-'ExprV6 | ExprVNew2;
     ExprVNew2 -> ('not')? ('always' | 'eventually') Interval? ExprVNew2 | ExprV7;
     ExprV7 -> '(' Expr ')' | ExprV8;
-    ExprV8 -> NUMBER UNIT | NUMBER | Member | STRING | Function | BOOL;
+    ExprV8 -> NUMBER UNIT | NUMBER | Member | STRING | Function | BOOL | TIME;
 
     Function  -> Aggregate'('Expr')' | 'sumtime''('Expr')' | 'avgtime''('Expr')' 
                  | 'counttime''('Expr')' | 'foreach''('Expr')';

@@ -1,0 +1,49 @@
+grammar cfg
+{
+  options
+  {
+    Axiom = "Program"; // the top variable for this grammar
+    Separator = "SEPARATOR"; // the terminal that represent white space
+  }
+  terminals
+  {
+    WHITE_SPACE -> U+0020 | U+0009 | U+000B | U+000C ;
+    SEPARATOR   -> WHITE_SPACE+;
+
+    INTEGER     -> [1-9] [0-9]* | '0' ;
+    REAL        -> INTEGER? '.' INTEGER  (('e' | 'E') ('+' | '-')? INTEGER)?
+                |  INTEGER ('e' | 'E') ('+' | '-')? INTEGER ;
+    NUMBER      -> INTEGER | REAL ;
+
+    STRING -> [a-zA-Z]+;
+    UNIT -> 's'|'m' | 'h' | 'w' | 'kWh';
+    BOOL -> 'true' | 'false';
+  }
+  rules
+  {
+    Program -> Property;
+    Property -> (Logic';')+;
+
+    Logic    -> ('not')? MetricTL;
+    MetricTL -> LinearTL Interval '('Expr')' | '('Expr')' 'until' Interval '('Expr')';
+    LinearTL -> 'always' | 'eventually';
+    Interval -> ('['Expr','Expr']')?;
+
+    Expr   -> Expr '->' ExprV1 | ExprV1;
+    ExprV1 -> ExprV1 '|' ExprV2 | ExprV2;
+    ExprV2 -> ExprV2 '&' ExprV3 | ExprV3;
+    ExprV3 -> ExprV4 ('=' | '<=' | '>=' | '!=' | '<' | '>') ExprV4 | ExprV4;
+    ExprV4 -> ExprV4 '+' ExprV5 | ExprV4 '-' ExprV5 | ExprV5;
+    ExprV5 -> ExprV5 '*' ExprV6 | ExprV5 '/' ExprV6 | ExprV5 '%' ExprV6 | ExprV6;
+    ExprV6 -> '!'ExprV7 | '-'ExprV7 | ExprV7;
+    ExprV7 -> '(' Expr ')' | ExprV8;
+    ExprV8 -> NUMBER UNIT | NUMBER | Member | STRING | Function | BOOL | Logic;
+
+    Function  -> Aggregate'('Expr')' | 'sumtime''('Expr')' | 'avgtime''('Expr')' 
+                 | 'counttime''('Expr')' | 'foreach''('Expr')';
+    Aggregate -> 'sum' | 'avg' | 'count';
+
+    Member -> 'online' | 'power' | 'name';
+    
+  }
+}

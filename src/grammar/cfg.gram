@@ -22,22 +22,23 @@ grammar cfg
   rules
   {
     Program -> Property;
-    Property -> (Logic';')+;
+    Property -> (MTLStart';')+;
 
-    Logic    -> ('not')? MetricTL;
-    MetricTL -> LinearTL Interval '('Expr')' | '('Expr')' 'until' Interval '('Expr')';
-    LinearTL -> 'always' | 'eventually';
-    Interval -> ('['Expr','Expr']')?;
+    MTLStart -> ('not')? ('always' | 'eventually') Interval? Expr; //| 'not''('MTLStart  'until' Interval? Expr ')' | MTLStart 'until' Interval? Expr;
 
-    Expr   -> Expr '->' ExprV1 | ExprV1;
+    Interval -> '['Expr','Expr']'; // TODO gør så det kun er artimetisk expressions der er tilladt i intervallet
+
+    Expr   -> ExprV1 '->' Expr | ExprV1;
     ExprV1 -> ExprV1 '|' ExprV2 | ExprV2;
-    ExprV2 -> ExprV2 '&' ExprV3 | ExprV3;
-    ExprV3 -> ExprV4 ('=' | '<=' | '>=' | '!=' | '<' | '>') ExprV4 | ExprV4;
+    ExprV2 -> ExprV2 '&' ExprVNew1 | ExprVNew1;
+    ExprVNew1 -> 'not''('ExprV3  'until' Interval? ExprVNew1 ')' | ExprV3  'until' Interval? ExprVNew1 | ExprV3;
+    ExprV3 -> ExprV4 ('==' | '<=' | '>=' | '!=' | '<' | '>') ExprV4 | ExprV4;
     ExprV4 -> ExprV4 '+' ExprV5 | ExprV4 '-' ExprV5 | ExprV5;
     ExprV5 -> ExprV5 '*' ExprV6 | ExprV5 '/' ExprV6 | ExprV5 '%' ExprV6 | ExprV6;
-    ExprV6 -> '!'ExprV7 | '-'ExprV7 | ExprV7;
+    ExprV6 -> '!'ExprV6 | '-'ExprV6 | ExprVNew2;
+    ExprVNew2 -> ('not')? ('always' | 'eventually') Interval? ExprVNew2 | ExprV7;
     ExprV7 -> '(' Expr ')' | ExprV8;
-    ExprV8 -> NUMBER UNIT | NUMBER | Member | STRING | Function | BOOL | Logic;
+    ExprV8 -> NUMBER UNIT | NUMBER | Member | STRING | Function | BOOL;
 
     Function  -> Aggregate'('Expr')' | 'sumtime''('Expr')' | 'avgtime''('Expr')' 
                  | 'counttime''('Expr')' | 'foreach''('Expr')';

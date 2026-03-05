@@ -76,51 +76,51 @@ pub const TERMINALS: &[Symbol] = &[
     },
     Symbol {
         id: 0x0020,
-        name: "("
-    },
-    Symbol {
-        id: 0x0021,
-        name: ")"
-    },
-    Symbol {
-        id: 0x0022,
-        name: "until"
-    },
-    Symbol {
-        id: 0x0023,
         name: "always"
     },
     Symbol {
-        id: 0x0024,
+        id: 0x0021,
         name: "eventually"
     },
     Symbol {
-        id: 0x0025,
+        id: 0x0022,
         name: "["
     },
     Symbol {
-        id: 0x0026,
+        id: 0x0023,
         name: ","
     },
     Symbol {
-        id: 0x0027,
+        id: 0x0024,
         name: "]"
     },
     Symbol {
-        id: 0x0028,
+        id: 0x0025,
         name: "->"
     },
     Symbol {
-        id: 0x0029,
+        id: 0x0026,
         name: "|"
     },
     Symbol {
-        id: 0x002A,
+        id: 0x0027,
         name: "&"
     },
     Symbol {
+        id: 0x0028,
+        name: "("
+    },
+    Symbol {
+        id: 0x0029,
+        name: "until"
+    },
+    Symbol {
+        id: 0x002A,
+        name: ")"
+    },
+    Symbol {
         id: 0x002B,
-        name: "="
+        name: "=="
     },
     Symbol {
         id: 0x002C,
@@ -224,28 +224,28 @@ static PARSER_AUTOMATON: &[u8] = include_bytes!("cfg_parser.bin");
 pub const ID_VARIABLE_PROGRAM: u32 = 0x000B;
 /// The unique identifier for variable `Property`
 pub const ID_VARIABLE_PROPERTY: u32 = 0x000C;
-/// The unique identifier for variable `Logic`
-pub const ID_VARIABLE_LOGIC: u32 = 0x000D;
-/// The unique identifier for variable `MetricTL`
-pub const ID_VARIABLE_METRIC_TL: u32 = 0x000E;
-/// The unique identifier for variable `LinearTL`
-pub const ID_VARIABLE_LINEAR_TL: u32 = 0x000F;
+/// The unique identifier for variable `MTLStart`
+pub const ID_VARIABLE_MTLSTART: u32 = 0x000D;
 /// The unique identifier for variable `Interval`
-pub const ID_VARIABLE_INTERVAL: u32 = 0x0010;
+pub const ID_VARIABLE_INTERVAL: u32 = 0x000E;
 /// The unique identifier for variable `Expr`
-pub const ID_VARIABLE_EXPR: u32 = 0x0011;
+pub const ID_VARIABLE_EXPR: u32 = 0x000F;
 /// The unique identifier for variable `ExprV1`
-pub const ID_VARIABLE_EXPR_V1: u32 = 0x0012;
+pub const ID_VARIABLE_EXPR_V1: u32 = 0x0010;
 /// The unique identifier for variable `ExprV2`
-pub const ID_VARIABLE_EXPR_V2: u32 = 0x0013;
+pub const ID_VARIABLE_EXPR_V2: u32 = 0x0011;
+/// The unique identifier for variable `ExprVNew1`
+pub const ID_VARIABLE_EXPR_VNEW1: u32 = 0x0012;
 /// The unique identifier for variable `ExprV3`
-pub const ID_VARIABLE_EXPR_V3: u32 = 0x0014;
+pub const ID_VARIABLE_EXPR_V3: u32 = 0x0013;
 /// The unique identifier for variable `ExprV4`
-pub const ID_VARIABLE_EXPR_V4: u32 = 0x0015;
+pub const ID_VARIABLE_EXPR_V4: u32 = 0x0014;
 /// The unique identifier for variable `ExprV5`
-pub const ID_VARIABLE_EXPR_V5: u32 = 0x0016;
+pub const ID_VARIABLE_EXPR_V5: u32 = 0x0015;
 /// The unique identifier for variable `ExprV6`
-pub const ID_VARIABLE_EXPR_V6: u32 = 0x0017;
+pub const ID_VARIABLE_EXPR_V6: u32 = 0x0016;
+/// The unique identifier for variable `ExprVNew2`
+pub const ID_VARIABLE_EXPR_VNEW2: u32 = 0x0017;
 /// The unique identifier for variable `ExprV7`
 pub const ID_VARIABLE_EXPR_V7: u32 = 0x0018;
 /// The unique identifier for variable `ExprV8`
@@ -272,47 +272,47 @@ pub const VARIABLES: &[Symbol] = &[
     },
     Symbol {
         id: 0x000D,
-        name: "Logic"
+        name: "MTLStart"
     },
     Symbol {
         id: 0x000E,
-        name: "MetricTL"
-    },
-    Symbol {
-        id: 0x000F,
-        name: "LinearTL"
-    },
-    Symbol {
-        id: 0x0010,
         name: "Interval"
     },
     Symbol {
-        id: 0x0011,
+        id: 0x000F,
         name: "Expr"
     },
     Symbol {
-        id: 0x0012,
+        id: 0x0010,
         name: "ExprV1"
     },
     Symbol {
-        id: 0x0013,
+        id: 0x0011,
         name: "ExprV2"
     },
     Symbol {
-        id: 0x0014,
+        id: 0x0012,
+        name: "ExprVNew1"
+    },
+    Symbol {
+        id: 0x0013,
         name: "ExprV3"
     },
     Symbol {
-        id: 0x0015,
+        id: 0x0014,
         name: "ExprV4"
     },
     Symbol {
-        id: 0x0016,
+        id: 0x0015,
         name: "ExprV5"
     },
     Symbol {
-        id: 0x0017,
+        id: 0x0016,
         name: "ExprV6"
+    },
+    Symbol {
+        id: 0x0017,
+        name: "ExprVNew2"
     },
     Symbol {
         id: 0x0018,
@@ -409,17 +409,17 @@ pub trait Visitor {
     fn on_terminal_bool(&self, node: &AstNode) {}
     fn on_variable_program(&self, node: &AstNode) {}
     fn on_variable_property(&self, node: &AstNode) {}
-    fn on_variable_logic(&self, node: &AstNode) {}
-    fn on_variable_metric_tl(&self, node: &AstNode) {}
-    fn on_variable_linear_tl(&self, node: &AstNode) {}
+    fn on_variable_mtlstart(&self, node: &AstNode) {}
     fn on_variable_interval(&self, node: &AstNode) {}
     fn on_variable_expr(&self, node: &AstNode) {}
     fn on_variable_expr_v1(&self, node: &AstNode) {}
     fn on_variable_expr_v2(&self, node: &AstNode) {}
+    fn on_variable_expr_vnew1(&self, node: &AstNode) {}
     fn on_variable_expr_v3(&self, node: &AstNode) {}
     fn on_variable_expr_v4(&self, node: &AstNode) {}
     fn on_variable_expr_v5(&self, node: &AstNode) {}
     fn on_variable_expr_v6(&self, node: &AstNode) {}
+    fn on_variable_expr_vnew2(&self, node: &AstNode) {}
     fn on_variable_expr_v7(&self, node: &AstNode) {}
     fn on_variable_expr_v8(&self, node: &AstNode) {}
     fn on_variable_function(&self, node: &AstNode) {}
@@ -448,17 +448,17 @@ pub fn visit_ast_node(node: AstNode, visitor: &dyn Visitor) {
         0x000A => visitor.on_terminal_bool(&node),
         0x000B => visitor.on_variable_program(&node),
         0x000C => visitor.on_variable_property(&node),
-        0x000D => visitor.on_variable_logic(&node),
-        0x000E => visitor.on_variable_metric_tl(&node),
-        0x000F => visitor.on_variable_linear_tl(&node),
-        0x0010 => visitor.on_variable_interval(&node),
-        0x0011 => visitor.on_variable_expr(&node),
-        0x0012 => visitor.on_variable_expr_v1(&node),
-        0x0013 => visitor.on_variable_expr_v2(&node),
-        0x0014 => visitor.on_variable_expr_v3(&node),
-        0x0015 => visitor.on_variable_expr_v4(&node),
-        0x0016 => visitor.on_variable_expr_v5(&node),
-        0x0017 => visitor.on_variable_expr_v6(&node),
+        0x000D => visitor.on_variable_mtlstart(&node),
+        0x000E => visitor.on_variable_interval(&node),
+        0x000F => visitor.on_variable_expr(&node),
+        0x0010 => visitor.on_variable_expr_v1(&node),
+        0x0011 => visitor.on_variable_expr_v2(&node),
+        0x0012 => visitor.on_variable_expr_vnew1(&node),
+        0x0013 => visitor.on_variable_expr_v3(&node),
+        0x0014 => visitor.on_variable_expr_v4(&node),
+        0x0015 => visitor.on_variable_expr_v5(&node),
+        0x0016 => visitor.on_variable_expr_v6(&node),
+        0x0017 => visitor.on_variable_expr_vnew2(&node),
         0x0018 => visitor.on_variable_expr_v7(&node),
         0x0019 => visitor.on_variable_expr_v8(&node),
         0x001A => visitor.on_variable_function(&node),

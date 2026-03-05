@@ -73,143 +73,143 @@ pub const TERMINALS: &[Symbol] = &[
         name: "TIME"
     },
     Symbol {
-        id: 0x0023,
+        id: 0x0022,
         name: ";"
     },
     Symbol {
-        id: 0x0025,
+        id: 0x0024,
         name: "not"
     },
     Symbol {
-        id: 0x0026,
+        id: 0x0025,
         name: "always"
     },
     Symbol {
-        id: 0x0027,
+        id: 0x0026,
         name: "eventually"
     },
     Symbol {
-        id: 0x0028,
+        id: 0x0027,
         name: "until"
     },
     Symbol {
-        id: 0x0029,
+        id: 0x0028,
         name: "("
     },
     Symbol {
-        id: 0x002A,
+        id: 0x0029,
         name: ","
     },
     Symbol {
-        id: 0x002B,
+        id: 0x002A,
         name: ")"
     },
     Symbol {
-        id: 0x002C,
+        id: 0x002B,
         name: "["
     },
     Symbol {
-        id: 0x002D,
+        id: 0x002C,
         name: "]"
     },
     Symbol {
-        id: 0x002E,
+        id: 0x002D,
         name: "+"
     },
     Symbol {
-        id: 0x002F,
+        id: 0x002E,
         name: "-"
     },
     Symbol {
-        id: 0x0030,
+        id: 0x002F,
         name: "*"
     },
     Symbol {
-        id: 0x0031,
+        id: 0x0030,
         name: "/"
     },
     Symbol {
-        id: 0x0032,
+        id: 0x0031,
         name: "%"
     },
     Symbol {
-        id: 0x0033,
+        id: 0x0032,
         name: "!"
     },
     Symbol {
-        id: 0x0034,
+        id: 0x0033,
         name: "->"
     },
     Symbol {
-        id: 0x0035,
+        id: 0x0034,
         name: "|"
     },
     Symbol {
-        id: 0x0036,
+        id: 0x0035,
         name: "&"
     },
     Symbol {
-        id: 0x0037,
+        id: 0x0036,
         name: "=="
     },
     Symbol {
-        id: 0x0038,
+        id: 0x0037,
         name: "<="
     },
     Symbol {
-        id: 0x0039,
+        id: 0x0038,
         name: ">="
     },
     Symbol {
-        id: 0x003A,
+        id: 0x0039,
         name: "!="
     },
     Symbol {
-        id: 0x003B,
+        id: 0x003A,
         name: "<"
     },
     Symbol {
-        id: 0x003C,
+        id: 0x003B,
         name: ">"
     },
     Symbol {
-        id: 0x003D,
+        id: 0x003C,
         name: "sumtime"
     },
     Symbol {
-        id: 0x003E,
+        id: 0x003D,
         name: "avgtime"
     },
     Symbol {
-        id: 0x003F,
+        id: 0x003E,
         name: "counttime"
     },
     Symbol {
-        id: 0x0040,
+        id: 0x003F,
         name: "foreach"
     },
     Symbol {
-        id: 0x0041,
+        id: 0x0040,
         name: "sum"
     },
     Symbol {
-        id: 0x0042,
+        id: 0x0041,
         name: "avg"
     },
     Symbol {
-        id: 0x0043,
+        id: 0x0042,
         name: "count"
     },
     Symbol {
-        id: 0x0044,
+        id: 0x0043,
         name: "online"
     },
     Symbol {
-        id: 0x0045,
+        id: 0x0044,
         name: "power"
     },
     Symbol {
-        id: 0x0046,
+        id: 0x0045,
         name: "name"
     }
 ];
@@ -258,20 +258,18 @@ pub const ID_VARIABLE_EXPR_V3: u32 = 0x0019;
 pub const ID_VARIABLE_EXPR_V4: u32 = 0x001A;
 /// The unique identifier for variable `ExprV5`
 pub const ID_VARIABLE_EXPR_V5: u32 = 0x001B;
-/// The unique identifier for variable `ExprV6`
-pub const ID_VARIABLE_EXPR_V6: u32 = 0x001C;
 /// The unique identifier for variable `ExprVNew2`
-pub const ID_VARIABLE_EXPR_VNEW2: u32 = 0x001D;
+pub const ID_VARIABLE_EXPR_VNEW2: u32 = 0x001C;
 /// The unique identifier for variable `ExprV7`
-pub const ID_VARIABLE_EXPR_V7: u32 = 0x001E;
+pub const ID_VARIABLE_EXPR_V7: u32 = 0x001D;
 /// The unique identifier for variable `ExprV8`
-pub const ID_VARIABLE_EXPR_V8: u32 = 0x001F;
+pub const ID_VARIABLE_EXPR_V8: u32 = 0x001E;
 /// The unique identifier for variable `Function`
-pub const ID_VARIABLE_FUNCTION: u32 = 0x0020;
+pub const ID_VARIABLE_FUNCTION: u32 = 0x001F;
 /// The unique identifier for variable `Aggregate`
-pub const ID_VARIABLE_AGGREGATE: u32 = 0x0021;
+pub const ID_VARIABLE_AGGREGATE: u32 = 0x0020;
 /// The unique identifier for variable `Member`
-pub const ID_VARIABLE_MEMBER: u32 = 0x0022;
+pub const ID_VARIABLE_MEMBER: u32 = 0x0021;
 
 
 /// The collection of variables matched by this parser
@@ -344,38 +342,34 @@ pub const VARIABLES: &[Symbol] = &[
     },
     Symbol {
         id: 0x001C,
-        name: "ExprV6"
-    },
-    Symbol {
-        id: 0x001D,
         name: "ExprVNew2"
     },
     Symbol {
-        id: 0x001E,
+        id: 0x001D,
         name: "ExprV7"
     },
     Symbol {
-        id: 0x001F,
+        id: 0x001E,
         name: "ExprV8"
     },
     Symbol {
-        id: 0x0020,
+        id: 0x001F,
         name: "Function"
     },
     Symbol {
-        id: 0x0021,
+        id: 0x0020,
         name: "Aggregate"
     },
     Symbol {
-        id: 0x0022,
+        id: 0x0021,
         name: "Member"
     },
     Symbol {
-        id: 0x0024,
-        name: "__V36"
+        id: 0x0023,
+        name: "__V35"
     },
     Symbol {
-        id: 0x0047,
+        id: 0x0046,
         name: "__VAxiom"
     }
 ];
@@ -460,7 +454,6 @@ pub trait Visitor {
     fn on_variable_expr_v3(&self, node: &AstNode) {}
     fn on_variable_expr_v4(&self, node: &AstNode) {}
     fn on_variable_expr_v5(&self, node: &AstNode) {}
-    fn on_variable_expr_v6(&self, node: &AstNode) {}
     fn on_variable_expr_vnew2(&self, node: &AstNode) {}
     fn on_variable_expr_v7(&self, node: &AstNode) {}
     fn on_variable_expr_v8(&self, node: &AstNode) {}
@@ -505,13 +498,12 @@ pub fn visit_ast_node(node: AstNode, visitor: &dyn Visitor) {
         0x0019 => visitor.on_variable_expr_v3(&node),
         0x001A => visitor.on_variable_expr_v4(&node),
         0x001B => visitor.on_variable_expr_v5(&node),
-        0x001C => visitor.on_variable_expr_v6(&node),
-        0x001D => visitor.on_variable_expr_vnew2(&node),
-        0x001E => visitor.on_variable_expr_v7(&node),
-        0x001F => visitor.on_variable_expr_v8(&node),
-        0x0020 => visitor.on_variable_function(&node),
-        0x0021 => visitor.on_variable_aggregate(&node),
-        0x0022 => visitor.on_variable_member(&node),
+        0x001C => visitor.on_variable_expr_vnew2(&node),
+        0x001D => visitor.on_variable_expr_v7(&node),
+        0x001E => visitor.on_variable_expr_v8(&node),
+        0x001F => visitor.on_variable_function(&node),
+        0x0020 => visitor.on_variable_aggregate(&node),
+        0x0021 => visitor.on_variable_member(&node),
         _ => ()
     };
 }

@@ -39,9 +39,9 @@ grammar cfg
     ExprVNew1 -> ('not')?'until'Interval?'('ExprVNew1','ExprV3')' | ExprV3;
     ExprV3 -> ExprV4 ('==' | '<=' | '>=' | '!=' | '<' | '>') ExprV4 | ExprV4;
     ExprV4 -> ExprV4 '+' ExprV5 | ExprV4 '-' ExprV5 | ExprV5;
-    ExprV5 -> ExprV5 '*' ExprV6 | ExprV5 '/' ExprV6 | ExprV5 '%' ExprV6 | ExprV6;
-    ExprV6 -> '!'ExprV6 | '-'ExprV6 | ExprVNew2;
-    ExprVNew2 -> ('not')? ('always' | 'eventually') Interval? ExprVNew2 | ExprV7;
+    ExprV5 -> ExprV5 '*' ExprVNew2 | ExprV5 '/' ExprVNew2 | ExprV5 '%' ExprVNew2 | ExprVNew2;
+    // ExprV6 -> '!'ExprVNew2 | '-'ExprVNew2 | ExprVNew2;
+    ExprVNew2 -> ('not')? ('always' | 'eventually') Interval? ExprVNew2 | '!'ExprVNew2 | '-'ExprVNew2 | ExprV7;
     ExprV7 -> '(' Expr ')' | ExprV8;
     ExprV8 -> NUMBER UNIT | NUMBER | Member | STRING | Function | BOOL | TIME;
 

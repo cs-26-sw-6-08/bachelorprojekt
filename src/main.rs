@@ -5,7 +5,9 @@ extern crate hime_redist;
 use hime_redist::ast::AstNode;
 
 fn main() {
-    let result = grammar::cfg::parse_string("always 7;".to_string());
+    let result = grammar::cfg::parse_string("
+    always (t % 24h = 0) -> always[0h,24h] sumtime(active * power) <10 kWh; 
+".to_string());
     let ast = result.get_ast();
     let root = ast.get_root();
     print(root, Vec::<bool>::new());
@@ -30,3 +32,4 @@ fn print<'a>(node: AstNode<'_,'_,'a>, crossings: Vec<bool>) {
         i += 1;
     }
 }
+

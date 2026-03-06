@@ -1,4 +1,7 @@
 grammar cfg
+//Lexer and parser made using Hime: https://cenotelie.fr/projects/hime
+// + = 1 or more times, ? = 0 or 1 times, * = 0 or more times, '' surronds terminals
+//^ promotes an element in the AST, ! removes an element from the AST
 {
   options
   {
@@ -22,13 +25,13 @@ grammar cfg
   }
   rules
   {
-    Program -> Property;
+    Program  -> Property;
     Property -> (MTLStart';'!)+;
 
     MTLStart -> ('not'? ('always' | 'eventually'))^ Interval? Expr | ('not'?'until')^Interval?'('Expr','Expr')';
 
     Interval -> '['!ExprA','!ExprA']'!;
-    ExprA -> ExprA '+'^ ExprA1 | ExprA '-'^ ExprA1 | ExprA1^;
+    ExprA  -> ExprA '+'^ ExprA1 | ExprA '-'^ ExprA1 | ExprA1^;
     ExprA1 -> ExprA1 '*'^ ExprA2 | ExprA1 '/'^ ExprA2 | ExprA1 '%'^ ExprA2 | ExprA2^;
     ExprA2 -> '!'^ExprA3 | '-'^ExprA3 | ExprA3^;
     ExprA3 -> '(' ExprA^ ')' | ExprA4^;

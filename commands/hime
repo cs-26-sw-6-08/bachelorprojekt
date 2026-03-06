@@ -1,1 +1,1 @@
-for linux: himecc -t rust cfg.gram
+for linux, inside path src/grammar: himecc -t rust cfg.gram

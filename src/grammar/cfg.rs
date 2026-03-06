@@ -150,7 +150,7 @@ pub const TERMINALS: &[Symbol] = &[
     },
     Symbol {
         id: 0x0036,
-        name: "=="
+        name: "="
     },
     Symbol {
         id: 0x0037,

@@ -35,21 +35,20 @@ grammar cfg
 
     Expr   -> ExprV1 '->' Expr | ExprV1;
     ExprV1 -> ExprV1 '|' ExprV2 | ExprV2;
-    ExprV2 -> ExprV2 '&' ExprVNew1 | ExprVNew1;
-    ExprVNew1 -> ('not')?'until'Interval?'('ExprVNew1','ExprV3')' | ExprV3;
-    ExprV3 -> ExprV4 ('==' | '<=' | '>=' | '!=' | '<' | '>') ExprV4 | ExprV4;
-    ExprV4 -> ExprV4 '+' ExprV5 | ExprV4 '-' ExprV5 | ExprV5;
-    ExprV5 -> ExprV5 '*' ExprVNew2 | ExprV5 '/' ExprVNew2 | ExprV5 '%' ExprVNew2 | ExprVNew2;
-    // ExprV6 -> '!'ExprVNew2 | '-'ExprVNew2 | ExprVNew2;
-    ExprVNew2 -> ('not')? ('always' | 'eventually') Interval? ExprVNew2 | '!'ExprVNew2 | '-'ExprVNew2 | ExprV7;
-    ExprV7 -> '(' Expr ')' | ExprV8;
-    ExprV8 -> NUMBER UNIT | NUMBER | Member | STRING | Function | BOOL | TIME;
+    ExprV2 -> ExprV2 '&' ExprV3 | ExprV3;
+    ExprV3 -> ('not')?'until'Interval?'('ExprV3','ExprV4')' | ExprV4;
+    ExprV4 -> ExprV5 ('==' | '<=' | '>=' | '!=' | '<' | '>') ExprV5 | ExprV5;
+    ExprV5 -> ExprV5 '+' ExprV6 | ExprV5 '-' ExprV6 | ExprV6;
+    ExprV6 -> ExprV6 '*' ExprV7 | ExprV6 '/' ExprV7 | ExprV6 '%' ExprV7 | ExprV7;
+    ExprV7 -> ('not')? ('always' | 'eventually') Interval? ExprV7 | '!'ExprV7 | '-'ExprV7 | ExprV8;
+    ExprV8 -> '(' Expr ')' | ExprV9;
+    ExprV9 -> NUMBER UNIT | NUMBER | Member | STRING | Function | BOOL | TIME;
 
     Function  -> Aggregate'('Expr')' | 'sumtime''('Expr')' | 'avgtime''('Expr')' 
                  | 'counttime''('Expr')' | 'foreach''('Expr')';
     Aggregate -> 'sum' | 'avg' | 'count';
 
-    Member -> 'online' | 'power' | 'name';
+    Member -> 'active' | 'power' | 'name';
     
   }
 }

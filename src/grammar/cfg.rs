@@ -202,7 +202,7 @@ pub const TERMINALS: &[Symbol] = &[
     },
     Symbol {
         id: 0x0043,
-        name: "online"
+        name: "active"
     },
     Symbol {
         id: 0x0044,
@@ -250,20 +250,20 @@ pub const ID_VARIABLE_EXPR: u32 = 0x0015;
 pub const ID_VARIABLE_EXPR_V1: u32 = 0x0016;
 /// The unique identifier for variable `ExprV2`
 pub const ID_VARIABLE_EXPR_V2: u32 = 0x0017;
-/// The unique identifier for variable `ExprVNew1`
-pub const ID_VARIABLE_EXPR_VNEW1: u32 = 0x0018;
 /// The unique identifier for variable `ExprV3`
-pub const ID_VARIABLE_EXPR_V3: u32 = 0x0019;
+pub const ID_VARIABLE_EXPR_V3: u32 = 0x0018;
 /// The unique identifier for variable `ExprV4`
-pub const ID_VARIABLE_EXPR_V4: u32 = 0x001A;
+pub const ID_VARIABLE_EXPR_V4: u32 = 0x0019;
 /// The unique identifier for variable `ExprV5`
-pub const ID_VARIABLE_EXPR_V5: u32 = 0x001B;
-/// The unique identifier for variable `ExprVNew2`
-pub const ID_VARIABLE_EXPR_VNEW2: u32 = 0x001C;
+pub const ID_VARIABLE_EXPR_V5: u32 = 0x001A;
+/// The unique identifier for variable `ExprV6`
+pub const ID_VARIABLE_EXPR_V6: u32 = 0x001B;
 /// The unique identifier for variable `ExprV7`
-pub const ID_VARIABLE_EXPR_V7: u32 = 0x001D;
+pub const ID_VARIABLE_EXPR_V7: u32 = 0x001C;
 /// The unique identifier for variable `ExprV8`
-pub const ID_VARIABLE_EXPR_V8: u32 = 0x001E;
+pub const ID_VARIABLE_EXPR_V8: u32 = 0x001D;
+/// The unique identifier for variable `ExprV9`
+pub const ID_VARIABLE_EXPR_V9: u32 = 0x001E;
 /// The unique identifier for variable `Function`
 pub const ID_VARIABLE_FUNCTION: u32 = 0x001F;
 /// The unique identifier for variable `Aggregate`
@@ -326,31 +326,31 @@ pub const VARIABLES: &[Symbol] = &[
     },
     Symbol {
         id: 0x0018,
-        name: "ExprVNew1"
-    },
-    Symbol {
-        id: 0x0019,
         name: "ExprV3"
     },
     Symbol {
-        id: 0x001A,
+        id: 0x0019,
         name: "ExprV4"
     },
     Symbol {
-        id: 0x001B,
+        id: 0x001A,
         name: "ExprV5"
     },
     Symbol {
-        id: 0x001C,
-        name: "ExprVNew2"
+        id: 0x001B,
+        name: "ExprV6"
     },
     Symbol {
-        id: 0x001D,
+        id: 0x001C,
         name: "ExprV7"
     },
     Symbol {
-        id: 0x001E,
+        id: 0x001D,
         name: "ExprV8"
+    },
+    Symbol {
+        id: 0x001E,
+        name: "ExprV9"
     },
     Symbol {
         id: 0x001F,
@@ -450,13 +450,13 @@ pub trait Visitor {
     fn on_variable_expr(&self, node: &AstNode) {}
     fn on_variable_expr_v1(&self, node: &AstNode) {}
     fn on_variable_expr_v2(&self, node: &AstNode) {}
-    fn on_variable_expr_vnew1(&self, node: &AstNode) {}
     fn on_variable_expr_v3(&self, node: &AstNode) {}
     fn on_variable_expr_v4(&self, node: &AstNode) {}
     fn on_variable_expr_v5(&self, node: &AstNode) {}
-    fn on_variable_expr_vnew2(&self, node: &AstNode) {}
+    fn on_variable_expr_v6(&self, node: &AstNode) {}
     fn on_variable_expr_v7(&self, node: &AstNode) {}
     fn on_variable_expr_v8(&self, node: &AstNode) {}
+    fn on_variable_expr_v9(&self, node: &AstNode) {}
     fn on_variable_function(&self, node: &AstNode) {}
     fn on_variable_aggregate(&self, node: &AstNode) {}
     fn on_variable_member(&self, node: &AstNode) {}
@@ -494,13 +494,13 @@ pub fn visit_ast_node(node: AstNode, visitor: &dyn Visitor) {
         0x0015 => visitor.on_variable_expr(&node),
         0x0016 => visitor.on_variable_expr_v1(&node),
         0x0017 => visitor.on_variable_expr_v2(&node),
-        0x0018 => visitor.on_variable_expr_vnew1(&node),
-        0x0019 => visitor.on_variable_expr_v3(&node),
-        0x001A => visitor.on_variable_expr_v4(&node),
-        0x001B => visitor.on_variable_expr_v5(&node),
-        0x001C => visitor.on_variable_expr_vnew2(&node),
-        0x001D => visitor.on_variable_expr_v7(&node),
-        0x001E => visitor.on_variable_expr_v8(&node),
+        0x0018 => visitor.on_variable_expr_v3(&node),
+        0x0019 => visitor.on_variable_expr_v4(&node),
+        0x001A => visitor.on_variable_expr_v5(&node),
+        0x001B => visitor.on_variable_expr_v6(&node),
+        0x001C => visitor.on_variable_expr_v7(&node),
+        0x001D => visitor.on_variable_expr_v8(&node),
+        0x001E => visitor.on_variable_expr_v9(&node),
         0x001F => visitor.on_variable_function(&node),
         0x0020 => visitor.on_variable_aggregate(&node),
         0x0021 => visitor.on_variable_member(&node),

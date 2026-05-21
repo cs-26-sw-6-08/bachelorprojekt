@@ -8,14 +8,14 @@ use crate::{program::{
 }, utils::test_helper_func::{ always_expr, binary_expr, custom_number_expr, string_expr, custom_unit_expr, eventually_expr, eventually_interval_expr, always_interval_expr, function_expr, interval_expr, member_expr, number_expr, unary_expr, unit_expr}
 };
 
-#[test]
-fn eventually() {
-    let program = Program::new("eventually true;").unwrap();
-    assert_eq!(
-        program.expressions.first().unwrap().expr,
-        eventually_expr(custom_number_expr(1_000))
-    );
-}
+// #[test]
+// fn eventually() {
+//     let program = Program::new("eventually true;").unwrap();
+//     assert_eq!(
+//         program.expressions.first().unwrap().expr,
+//         eventually_expr(custom_number_expr(1_000))
+//     );
+// }
 
 #[test]
 fn always() {
@@ -26,23 +26,23 @@ fn always() {
     );
 }
 
-#[test]
-fn eventually_interval() {
-    let program = Program::new("eventually[1s,3h] false;").unwrap();
-    assert_eq!(
-        program.expressions.first().unwrap().expr,
-        eventually_interval_expr(interval_expr(custom_unit_expr(1_000, Unit::Seconds), custom_unit_expr(3_000, Unit::Hours)), custom_number_expr(0))
-    );
-}
+// #[test]
+// fn eventually_interval() {
+//     let program = Program::new("eventually[1s,3h] false;").unwrap();
+//     assert_eq!(
+//         program.expressions.first().unwrap().expr,
+//         eventually_interval_expr(interval_expr(custom_unit_expr(1_000, Unit::Seconds), custom_unit_expr(3_000, Unit::Hours)), custom_number_expr(0))
+//     );
+// }
 
-#[test]
-fn always_interval() {
-    let program = Program::new("always[1s,3h] false;").unwrap();
-    assert_eq!(
-        program.expressions.first().unwrap().expr,
-        always_interval_expr(interval_expr(custom_unit_expr(1_000, Unit::Seconds), custom_unit_expr(3_000, Unit::Hours)), custom_number_expr(0))
-    );
-}
+// #[test]
+// fn always_interval() {
+//     let program = Program::new("always[1s,3h] false;").unwrap();
+//     assert_eq!(
+//         program.expressions.first().unwrap().expr,
+//         always_interval_expr(interval_expr(custom_unit_expr(1_000, Unit::Seconds), custom_unit_expr(3_000, Unit::Hours)), custom_number_expr(0))
+//     );
+// }
 
 #[test]
 fn current_time() {

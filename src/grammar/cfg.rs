@@ -90,11 +90,11 @@ pub const TERMINALS: &[Symbol] = &[
     },
     Symbol {
         id: 0x002E,
-        name: "!"
+        name: "always"
     },
     Symbol {
         id: 0x002F,
-        name: "always"
+        name: "!"
     },
     Symbol {
         id: 0x0030,

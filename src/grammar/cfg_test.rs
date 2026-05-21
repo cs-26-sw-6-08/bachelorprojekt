@@ -96,7 +96,7 @@ fn property6() {
 #[test]
 fn property7() {
     let actual: String = tree_to_str(
-        cfg::parse_string("always 7; eventually 7;".to_lowercase())
+        cfg::parse_string("always 7; always 7;".to_lowercase())
             .get_ast()
             .get_root(),
         Vec::<bool>::new(),

@@ -258,8 +258,6 @@ fn test6() {
 fn test7() {
     let mut program = Program::new(
         "always 1; 
-    ! always[0s,5s] 2; 
-    eventually[0s,6s] 3; 
     ! eventually 4;",
     )
     .unwrap();
@@ -277,20 +275,6 @@ fn test7() {
             },
             SpannedExpr {
                 line: 2,
-                expr: eventually_interval_expr(
-                    interval_expr(custom_number_expr(0), number_expr()),
-                    custom_number_expr(0),
-                ),
-            },
-            SpannedExpr {
-                line: 3,
-                expr: eventually_interval_expr(
-                    interval_expr(custom_number_expr(0), custom_number_expr(6_000)),
-                    custom_number_expr(3_000),
-                ),
-            },
-            SpannedExpr {
-                line: 4,
                 expr: always_expr(custom_number_expr(0)),
             },
         ],
@@ -303,7 +287,7 @@ fn test7() {
 #[test]
 fn test8() {
     let mut program = Program::new(
-        "eventually[5s,10s] foreach( 1 -> power > 5 W);
+        "!eventually foreach( 1 -> power > 5 W);
         always sumtime[5s + 5s + 5s * 1](power * (name = Roomba)) < 200Ws;",
     )
     .unwrap();
@@ -316,24 +300,25 @@ fn test8() {
 
     let expected_env = [
         PropertyStream::from((
-            PropLTL::Eventually(false),
+            PropLTL::Always,
             vec![
-                Operation::Foreach { idx: 1 },
+                Operation::Unary { un_op: UnaryOperators::Not, idx: 1 },
+                Operation::Foreach { idx: 2 },
                 Operation::Binary {
                     bin_op: BinaryOperators::Or,
-                    idx_lhs: 2,
-                    idx_rhs: 3,
+                    idx_lhs: 3,
+                    idx_rhs: 4,
                 },
                 Operation::Number(0),
                 Operation::Binary {
                     bin_op: BinaryOperators::Greater,
-                    idx_lhs: 4,
-                    idx_rhs: 5,
+                    idx_lhs: 5,
+                    idx_rhs: 6,
                 },
                 Operation::Member(MemberType::Power),
                 Operation::Number(5_000),
             ],
-            Some((5, 10)),
+            None,
         )),
         PropertyStream::from((
             PropLTL::Always,

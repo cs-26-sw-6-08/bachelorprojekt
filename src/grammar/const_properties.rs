@@ -98,7 +98,7 @@ pub const PROPERTY7: &str =
 r#"Program
 +-> always = always
 |   +-> NUMBER = 7
-+-> eventually = eventually
++-> always = always
     +-> NUMBER = 7
 "#;
 

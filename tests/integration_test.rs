@@ -22,7 +22,7 @@ fn test1() {
     assert!(program.unit_convert().is_ok());
     assert!(program.unit_check().is_ok());
     assert!(program.equiv_convert().is_ok());
-    assert!(program.monitorability_check().is_ok());
+    assert!(program.soundness_check().is_ok());
 
     let expected_program = Program {
         expressions: vec![SpannedExpr {
@@ -68,7 +68,7 @@ fn test2() {
     assert!(program.unit_convert().is_ok());
     assert!(program.unit_check().is_ok());
     assert!(program.equiv_convert().is_ok());
-    assert!(program.monitorability_check().is_ok());
+    assert!(program.soundness_check().is_ok());
 
     let expected_program = Program {
         expressions: vec![SpannedExpr {
@@ -102,7 +102,7 @@ fn test3() {
     assert!(program.unit_convert().is_ok());
     assert!(program.unit_check().is_ok());
     assert!(program.equiv_convert().is_ok());
-    assert!(program.monitorability_check().is_ok());
+    assert!(program.soundness_check().is_ok());
 
     let expected_program = Program {
         expressions: vec![SpannedExpr {
@@ -133,7 +133,7 @@ fn test4() {
     assert!(program.unit_convert().is_ok());
     assert!(program.unit_check().is_ok());
     assert!(program.equiv_convert().is_ok());
-    assert!(program.monitorability_check().is_ok());
+    assert!(program.soundness_check().is_ok());
 
     let expected_program = Program {
         expressions: vec![SpannedExpr {
@@ -175,7 +175,7 @@ fn test5() {
     assert!(program.unit_convert().is_ok());
     assert!(program.unit_check().is_ok());
     assert!(program.equiv_convert().is_ok());
-    assert!(program.monitorability_check().is_ok());
+    assert!(program.soundness_check().is_ok());
 
     let expected_program = Program {
         expressions: vec![SpannedExpr {
@@ -229,7 +229,7 @@ fn test6() {
     assert!(program.unit_convert().is_ok());
     assert!(program.unit_check().is_ok());
     assert!(program.equiv_convert().is_ok());
-    assert!(program.monitorability_check().is_ok());
+    assert!(program.soundness_check().is_ok());
 
     let expected_program = Program {
         expressions: vec![SpannedExpr {
@@ -265,7 +265,7 @@ fn test7() {
     assert!(program.unit_convert().is_ok());
     assert!(program.unit_check().is_ok());
     assert!(program.equiv_convert().is_ok());
-    assert!(program.monitorability_check().is_ok());
+    assert!(program.soundness_check().is_ok());
 
     let expected_program = Program {
         expressions: vec![
@@ -295,7 +295,7 @@ fn test8() {
     assert!(program.unit_convert().is_ok());
     assert!(program.unit_check().is_ok());
     assert!(program.equiv_convert().is_ok());
-    assert!(program.monitorability_check().is_ok());
+    assert!(program.soundness_check().is_ok());
     assert!(program.compile_properties().is_ok());
 
     let expected_env = [

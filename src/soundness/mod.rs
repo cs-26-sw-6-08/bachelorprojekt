@@ -6,9 +6,9 @@ pub mod expressions;
 mod expressions_test;
 
 impl Program {
-    pub fn monitorability_check(&self) -> Result<(), Box<dyn Error>> {
+    pub fn soundness_check(&self) -> Result<(), Box<dyn Error>> {
         for spannedexpr in self.expressions.iter() {
-            match spannedexpr.expr.monitorability_check() {
+            match spannedexpr.expr.soundness_check() {
                 Ok(_) => {},
                 Err(_) => return Err(errors::Error::UnmonitorableLine(spannedexpr.line).into()),
             }

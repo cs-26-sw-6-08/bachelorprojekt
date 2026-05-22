@@ -3,7 +3,7 @@ pub mod program;
 pub mod unit_check;
 pub mod equiv_convert;
 pub mod unit_convert;
-pub mod monitorability;
+pub mod soundness;
 pub mod utils;
 pub mod monitor_setup;
 pub mod monitor;
@@ -49,7 +49,7 @@ async fn main() {
         return error_print(format!("{}",err));
     };
     
-    if let Err(err) = program.monitorability_check() {
+    if let Err(err) = program.soundness_check() {
         return error_print(format!("{}",err));
     }
 

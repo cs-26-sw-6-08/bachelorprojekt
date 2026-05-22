@@ -39,10 +39,11 @@ impl Program {
             if !speed{
                 interval.tick().await;
             }
-
+            
             let start = Instant::now();
             #[cfg(debug_assertions)]
             println!("--- Interval {:<4}", format!("{}",t).blue().bold());
+            
             /*#[cfg(not(debug_assertions))]
             if t % 1000 == 0 {
                 println!("--- Interval {}", format!("[{}, {}]",t,t+999).blue().bold());
@@ -60,12 +61,13 @@ impl Program {
                 
                 Ok::<(), Box<dyn Error>>(())
             }.await?;
-
-            let elapsed = start.elapsed();
-            let colored_time = if elapsed.as_millis() > time_interval as u128 { format!("{:?}",elapsed).red().bold() } 
-                else { format!("{:?}",elapsed).bright_green().bold() };
             #[cfg(debug_assertions)]
-            println!("\tExecution Time: {}", colored_time);
+            {
+                let elapsed = start.elapsed();
+                let colored_time = if elapsed.as_millis() > time_interval as u128 { format!("{:?}",elapsed).red().bold() } 
+                    else { format!("{:?}",elapsed).bright_green().bold() };
+                println!("\tExecution Time: {}", colored_time);
+            }
 
         }
     }

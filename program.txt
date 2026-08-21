@@ -1,15 +1,1 @@
-always sum(power) <= 2670W;
-
-always (t % 24h = 0s) -> sumtime[24h-1s](power) < 6kWh;
-
-always count(name = fridge);
-
-always (t % 24h = 0s) -> (avgtime[24h - 1s](power) < 200W);
-
-always (t % 24h = 0s) -> (counttime[24h-1s](sum(power) <= 2670W) < 1h);
-
-!eventually foreach(power <= 0W);
-
-always sum((name = dryer) * power) < 400W;
-
-always ((t % 24h * 7) = 0s) -> (sumtime[24h*7 - 1s](power) < 36kWh);
+always counttime[5s](power * (name=television) > 6W) <= 5s;

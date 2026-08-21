@@ -12,7 +12,7 @@ extern crate hime_redist;
 use std::fs;
 use colored::Colorize;
 use dotenv::dotenv;
-use monitor::instrumentation::Instrumentation;
+// use monitor::instrumentation::Instrumentation;
 use crate::program::Program;
 
 
@@ -22,10 +22,10 @@ async fn main() {
     let base_url = std::env::var("BASE_URL").expect("BASE_URL not defined in .env");
     let token = std::env::var("TOKEN").expect("TOKEN not defined in .env");
 
-    let instrumentation = match Instrumentation::new(&base_url, &token) {
-        Ok(instrumentation) => instrumentation,
-        Err(err) => return error_print(format!("{}", err)),
-    };
+    // let instrumentation = match Instrumentation::new(&base_url, &token) {
+    //     Ok(instrumentation) => instrumentation,
+    //     Err(err) => return error_print(format!("{}", err)),
+    // };
 
     let program_str = match fs::read_to_string("program.txt") {
         Ok(program_str) => program_str,
@@ -57,9 +57,9 @@ async fn main() {
         return error_print(format!("{}",err));
     }
     
-    if let Err(err) = program.monitor(instrumentation, 1_000, false).await {
-        return error_print(format!("{}",err));
-    }
+    // if let Err(err) = program.monitor(instrumentation, 1_000, false).await {
+    //     return error_print(format!("{}",err));
+    // }
 }
 
 fn error_print(err: String) {

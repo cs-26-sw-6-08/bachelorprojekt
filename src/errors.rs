@@ -33,6 +33,9 @@ pub enum Error {
     #[error("Invalid Function Interval Expression")]
     InvalidFunctionIntervalExpr,
 
+    #[error("Size calculation of IoTStream was incorrect")]
+    OutOfBoundsIoTStream,
+
     #[error("Value Stack error: Not enough values in stack")]
     ValueStackPop,
     #[error("Invalid Device Pointer Assignment")]

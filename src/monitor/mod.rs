@@ -9,7 +9,7 @@ mod streams_test;
 mod operation_eval_test;
 
 use std::error::Error;
-use crate::{errors, monitor::{streams::{IoTStream, OutputStream}}, program::Program};
+use crate::{errors, monitor::streams::{IoTDevice, IoTStream, OutputStream}, program::Program};
 use tokio::time::{Duration, interval};
 use std::time::Instant;
 
@@ -26,6 +26,11 @@ impl Program {
         let mut interval = interval(Duration::from_millis(time_interval as u64));
 
         let mut t = 0;
+
+        //Should be dynamic
+        let size = 10; 
+        let mut cur_idx = 0;
+        let mut devices = IoTStream::with_capacity(size);
 
         #[cfg(not(debug_assertions))]
         {
@@ -44,9 +49,14 @@ impl Program {
             #[cfg(debug_assertions)]
             println!("--- Interval {:<4}", format!("{}",t).blue().bold());
 
-            // let devices: IoTStream = ( instrumentation.fetch_device_states().await ).into();
-            #[cfg(debug_assertions)]
-            // let devices: IoTStream = IoTStream.into();
+            //Todo: This should be fixed
+            if cfg!(debug_assertions) {     
+                // devices.push_at(instrumentation.fetch_device_states().await, cur_idx);
+                devices.push_at(todo!(), cur_idx);
+            } else {
+                devices.push_at(todo!(), cur_idx);
+            }
+            cur_idx = (cur_idx + 1) % size;
             
             
 

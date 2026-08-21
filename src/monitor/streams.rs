@@ -1,7 +1,4 @@
-use crate::{
-    monitor::types::Verdict,
-    monitor_setup::operation_types::{DerivedStream},
-};
+use crate::{errors, monitor::types::Verdict, monitor_setup::operation_types::DerivedStream};
 
 #[derive(Debug, PartialEq)]
 pub struct OutputStream {
@@ -69,6 +66,10 @@ impl IoTStream {
     pub fn get_devices(&self, i: usize) -> &Vec<IoTDevice> {
         &self.0[i]
     }
+    
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self(Vec::with_capacity(capacity))
+    }
 
     pub fn get_mut_devices(&mut self, i: usize) -> &mut Vec<IoTDevice> {
         &mut self.0[i]
@@ -76,6 +77,14 @@ impl IoTStream {
 
     pub fn get_all_own(self) -> Vec<Vec<IoTDevice>> {
         self.0
+    }
+
+    pub fn push_at(&mut self, devices: Vec<IoTDevice>, i: usize) -> Result<(), errors::Error> {
+        self.0
+            .get_mut(i)
+            .map(|to_set| *to_set = devices)
+            .ok_or(errors::Error::OutOfBoundsIoTStream)?;
+        Ok(())
     }
 }
 

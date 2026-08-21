@@ -1,247 +1,149 @@
 
+use std::{collections::HashSet, vec};
+
 use crate::{
-    monitor_setup::operation_types::{AggregateType, ExprLTL, Operation, PropLTL}, program::{member_types::MemberType, operations::{BinaryOperators, UnaryOperators}}, utils::monitor_test_helper_func::*
+    monitor_setup::operation_types::DerivedStream, program::{member_types::MemberType, operations::{BinaryOperators, UnaryOperators}}, utils::test_helper_func::*,
+    
 };
 
+
 #[test]
-fn eventually_true_remove() {
-    let operations: Vec<Operation> = vec![Operation::Number(1)];
-    let mut program = eventually_prop_helper(operations, (0, 2));
-    let device_stream = single_device_stream();
-    let Some(streams) = &mut program.environment else {
-        panic!()
-    };
-    let result = run_x_monitor_steps(streams, &device_stream, 0, 5);
+/// Prop: [] 0;
+/// Vaiolation: each time
+fn always_false() {
+    let repeats = 100i128; 
+
+    let operations: Vec<DerivedStream> = vec![DerivedStream::Number(0)];
+    let program = always_prop_helper(operations);
+    let device_stream = mock_default_device_stream(repeats as usize);
+    let streams = &mut program.environment.unwrap();
+    let result = run_monitor_x_steps(streams, &device_stream, repeats);
     
-    for (_, value) in result {
-        assert!(value.is_empty());
-    }
-    assert_eq!(streams.first().unwrap().ltl, PropLTL::Eventually(true));
+    let errors = create_error_set((0..repeats as usize).into_iter(), 1);
+    validate_run(result, errors );
 }
 
 #[test]
-fn eventually_false_remove() {
-    let operations: Vec<Operation> = vec![Operation::Number(0)];
-    let mut program = eventually_prop_helper(operations, (0, 2));
-    let device_stream = single_device_stream();
-    let Some(streams) = &mut program.environment else {
-        panic!()
-    };
-    let result = run_x_monitor_steps(streams, &device_stream, 0, 5);
+/// Prop: [] 1;
+/// Vaiolation: never
+fn always_true() {
+    let repeats = 100i128; 
+
+    let operations: Vec<DerivedStream> = vec![DerivedStream::Number(1)];
+    let program = always_prop_helper(operations);
+    let device_stream = mock_default_device_stream(repeats as usize);
+    let streams = &mut program.environment.unwrap();
+    let result = run_monitor_x_steps(streams, &device_stream, repeats);
     
-    for (idx, value) in result {
-        if idx == 2 {
-            assert!(value[0].1);
-        }
-    }
-    assert_eq!(streams.first().unwrap().ltl, PropLTL::Eventually(true));
+    validate_run(result, HashSet::new());
 }
 
-#[test]
-fn eventually_true_remove_hard_challange_mode() {
-    let operations: Vec<Operation> = vec![Operation::Number(0)];
-    let mut program = eventually_prop_helper(operations, (2, 6));
-    let device_stream = single_device_stream();
-    let Some(streams) = &mut program.environment else {
-        panic!()
-    };
-    let result = run_x_monitor_steps(streams, &device_stream, 0, 5);
-    
-    for (_, value) in result {
-        assert!(value.is_empty());
-    }
-    assert_eq!(streams.first().unwrap().ltl, PropLTL::Eventually(false));
-
-    let result = run_x_monitor_steps(streams, &device_stream, 5, 4);
-    
-    for (idx, value) in result {
-        if idx == 6 {
-            assert!(value[0].1);
-        } else {
-            assert!(value.is_empty());
-        }
-    }
-    assert_eq!(streams.first().unwrap().ltl, PropLTL::Eventually(true));
-}
 
 #[test]
-fn eventually_false_not_removed() {
-    let operations: Vec<Operation> = vec![Operation::Number(0)];
-    let mut program = eventually_prop_helper(operations, (0, 5));
-    let device_stream = single_device_stream();
-    let Some(streams) = &mut program.environment else {
-        panic!()
-    };
-    let result = run_x_monitor_steps(streams, &device_stream, 0, 3);
-    
-    for (idx, value) in result {
-        if idx == 2 {
-            assert!(value.is_empty());
-        }
-    }
-    assert_eq!(streams.first().unwrap().ltl, PropLTL::Eventually(false));
-}
-
-#[test]
-fn always_false_unbound() {
-    let operations: Vec<Operation> = vec![Operation::Number(0)];
-    let mut program = always_prop_helper(operations, None);
-    let device_stream = single_device_stream();
-    let Some(streams) = &mut program.environment else {
-        panic!()
-    };
-    let result = run_x_monitor_steps(streams, &device_stream, 0, 100);
-    
-    for (_, value) in result {
-        assert!(value[0].1);
-    }
-}
-
-#[test]
-fn always_true_unbound() {
-    let operations: Vec<Operation> = vec![Operation::Number(1)];
-    let mut program = always_prop_helper(operations, None);
-    let device_stream = single_device_stream();
-    let Some(streams) = &mut program.environment else {
-        panic!()
-    };
-    let result = run_x_monitor_steps(streams, &device_stream, 0, 100);
-    //
-    for (_, value) in result {
-        assert!(value.is_empty());
-    }
-}
-
-#[test]
-fn always_false_bound() {
-    let operations: Vec<Operation> = vec![Operation::Number(0)];
-    let mut program = always_prop_helper(operations, Some((0, 5)));
-    let device_stream = single_device_stream();
-    let Some(streams) = &mut program.environment else {
-        panic!()
-    };
-    let result = run_x_monitor_steps(streams, &device_stream, 0, 10);
-    
-    for (idx, value) in result {
-        if idx <= 5 {
-            assert!(value[0].1);
-        } else {
-            assert!(value.is_empty());
-        }
-    }
-}
-
-#[test]
+/// Prop: [] t%2;
+/// Vaiolation: ever other
 fn always_t_mod_switch() {
-    let operations: Vec<Operation> = vec![
-        Operation::Binary {
+    let repeats = 100i128; 
+
+    let operations: Vec<DerivedStream> = vec![
+        DerivedStream::Binary {
             bin_op: BinaryOperators::Mod,
             idx_lhs: 1,
             idx_rhs: 2,
         },
-        Operation::SpawnTime,
-        Operation::Number(2000),
+        DerivedStream::SpawnTime,
+        DerivedStream::Number(2000),
     ];
-    let mut program = always_prop_helper(operations, None);
-    let device_stream = single_device_stream();
-    let Some(streams) = &mut program.environment else {
-        panic!()
-    };
-    let result = run_x_monitor_steps(streams, &device_stream, 0, 100);
-    //
-    for (idx, value) in result {
-        if idx % 2 == 0 {
-            assert!(value[0].1);
-        } else {
-            assert!(value.is_empty());
-        }
-    }
+    let program = always_prop_helper(operations);
+    let device_stream = mock_default_device_stream(repeats as usize);
+    let streams = &mut program.environment.unwrap();
+
+    let result = run_monitor_x_steps(streams, &device_stream, repeats);
+   
+    let errors = create_error_set((0..(repeats as usize)).skip(2), 1);
+    validate_run(result, errors);
 }
 
 #[test]
+/// Prop: [] sum(1) = 10; 
 fn always_simple_count_true() {
-    let operations: Vec<Operation> = vec![
-        Operation::Binary {
+    let operations: Vec<DerivedStream> = vec![
+        DerivedStream::Binary {
             bin_op: BinaryOperators::Equal,
             idx_lhs: 1,
             idx_rhs: 3,
         },
-        Operation::AggregateFunction {
-            idx: 2,
-            function_type: AggregateType::Sum,
+        DerivedStream::Sum {
+            idx: 2
         },
-        Operation::Number(1000),
-        Operation::Number(10000),
+        DerivedStream::Number(1000),
+        DerivedStream::Number(10000),
     ];
-    let mut program = always_prop_helper(operations, None);
-    let device_stream = ten_device_stream();
-    let Some(streams) = &mut program.environment else {
-        panic!()
-    };
-    let result = run_x_monitor_steps(streams, &device_stream, 0, 100);
-    //
-    for (_, value) in result {
-        assert!(value.is_empty());
-    }
+    let program = always_prop_helper(operations);
+    let device_stream = mock_specific_device_amount_stream(10, 100);
+    let streams = &mut program.environment.unwrap();
+    let result = run_monitor_x_steps(streams, &device_stream, 100);
+    validate_run(result, HashSet::new());
 }
 
 #[test]
+/// Prop: [] sum(1) == 1;
+/// Vaiolation: each time
 fn always_simple_count_false() {
-    let operations: Vec<Operation> = vec![
-        Operation::Binary {
+    let repeats = 100i128;
+
+    let operations: Vec<DerivedStream> = vec![
+        DerivedStream::Binary {
             bin_op: BinaryOperators::Equal,
             idx_lhs: 1,
             idx_rhs: 3,
         },
-        Operation::AggregateFunction {
+        DerivedStream::Sum {
             idx: 2,
-            function_type: AggregateType::Sum,
         },
-        Operation::Number(1000),
-        Operation::Number(1000),
+        DerivedStream::Number(1000),
+        DerivedStream::Number(1000),
     ];
-    let mut program = always_prop_helper(operations, None);
-    let device_stream = ten_device_stream();
-    let Some(streams) = &mut program.environment else {
-        panic!()
-    };
-    let result = run_x_monitor_steps(streams, &device_stream, 0, 100);
-    //
-    for (_, value) in result {
-        assert!(value[0].1);
-    }
+    let program = always_prop_helper(operations);
+    let device_stream = mock_specific_device_amount_stream(10, repeats as usize);
+    let streams = &mut program.environment.unwrap();
+    let result = run_monitor_x_steps(streams, &device_stream, repeats);
+
+    let errors = create_error_set((0..repeats as usize).into_iter(), 1);
+    validate_run(result, errors);
 }
 
 #[test]
+/// Prop: [] sum(power) == 5;
+/// Vaiolation: never
 fn always_simple_sum_member_true() {
-    let operations: Vec<Operation> = vec![
-        Operation::Binary {
+    let repeats = 10i128;
+
+    let operations: Vec<DerivedStream> = vec![
+        DerivedStream::Binary {
             bin_op: BinaryOperators::Equal,
             idx_lhs: 1,
             idx_rhs: 3,
         },
-        Operation::AggregateFunction {
+        DerivedStream::Sum {
             idx: 2,
-            function_type: AggregateType::Sum,
         },
-        Operation::Member(MemberType::Power),
-        Operation::Number(5000),
+        DerivedStream::Member(MemberType::Power),
+        DerivedStream::Number(5000),
     ];
-    let mut program = always_prop_helper(operations, None);
-    let device_stream = single_device_stream();
-    let Some(streams) = &mut program.environment else {
-        panic!()
-    };
-    let result = run_x_monitor_steps(streams, &device_stream, 0, 10);
-    
-    for (_, value) in result {
-        assert!(value.is_empty());
-    }
+    let program = always_prop_helper(operations);
+    let device_stream = mock_specific_device_amount_stream(1, repeats as usize);
+    let streams = &mut program.environment.unwrap();
+    let result = run_monitor_x_steps(streams, &device_stream, repeats);
+
+    validate_run(result, HashSet::new());
 }
 
 #[test]
+/// Prop: [] Sum(power) == 55
+/// Violation: Never
 fn always_simple_sum_member_true2() {
-    let operations: Vec<Operation> = vec![
+    let operations: Vec<DerivedStream> = vec![
         Operation::Binary {
             bin_op: BinaryOperators::Equal,
             idx_lhs: 1,
@@ -267,8 +169,10 @@ fn always_simple_sum_member_true2() {
 }
 
 #[test]
+/// Sum(Power) == 10
+/// Violation: Always 
 fn always_simple_sum_member_false() {
-    let operations: Vec<Operation> = vec![
+    let operations: Vec<DerivedStream> = vec![
         Operation::Binary {
             bin_op: BinaryOperators::Equal,
             idx_lhs: 1,
@@ -296,8 +200,9 @@ fn always_simple_sum_member_false() {
 
 
 #[test]
+///Remove
 fn always_simple_avg_member_true() {
-    let operations: Vec<Operation> = vec![
+    let operations: Vec<DerivedStream> = vec![
         Operation::Binary {
             bin_op: BinaryOperators::Equal,
             idx_lhs: 1,
@@ -323,35 +228,10 @@ fn always_simple_avg_member_true() {
 }
 
 #[test]
-fn always_simple_avg_member_false() {
-    let operations: Vec<Operation> = vec![
-        Operation::Binary {
-            bin_op: BinaryOperators::Equal,
-            idx_lhs: 1,
-            idx_rhs: 3,
-        },
-        Operation::AggregateFunction {
-            idx: 2,
-            function_type: AggregateType::Avg,
-        },
-        Operation::Member(MemberType::Power),
-        Operation::Number(1_000),
-    ];
-    let mut program = always_prop_helper(operations, None);
-    let device_stream = ten_device_stream();
-    let Some(streams) = &mut program.environment else {
-        panic!()
-    };
-    let result = run_x_monitor_steps(streams, &device_stream, 0, 10);
-    
-    for (_, value) in result {
-        assert!(value[0].1);
-    }
-}
-
-#[test]
+/// Prop: [] t * 1 = t;
+/// Violation: Never
 fn always_mul_check() {
-    let operations: Vec<Operation> = vec![
+    let operations: Vec<DerivedStream> = vec![
         Operation::Binary {
             bin_op: BinaryOperators::Equal,
             idx_lhs: 1,
@@ -379,8 +259,10 @@ fn always_mul_check() {
 }
 
 #[test]
+/// Sum(power) / 2 == 2.5
+/// Violates: Never
 fn always_div_check() {
-    let operations: Vec<Operation> = vec![
+    let operations: Vec<DerivedStream> = vec![
         Operation::Binary {
             bin_op: BinaryOperators::Equal,
             idx_lhs: 1,
@@ -409,8 +291,10 @@ fn always_div_check() {
 }
 
 #[test]
+/// [] 2 - 1 == 1
+/// violates: Never
 fn always_minus_check() {
-    let operations: Vec<Operation> = vec![
+    let operations: Vec<DerivedStream> = vec![
         Operation::Binary {
             bin_op: BinaryOperators::Equal,
             idx_lhs: 1,
@@ -439,8 +323,10 @@ fn always_minus_check() {
 
 
 #[test]
+/// [] Sum(Foreach(1) != 0) == 10
+/// Violates: Never
 fn always_nested_device_stack() {
-    let operations: Vec<Operation> = vec![
+    let operations: Vec<DerivedStream> = vec![
         Operation::Binary {
             bin_op: BinaryOperators::Equal,
             idx_lhs: 1,
@@ -474,8 +360,10 @@ fn always_nested_device_stack() {
 
 
 #[test]
+/// Sum(foreach(1) != 1) == 1
+/// Violates: Always
 fn always_nested_device_stack_false() {
-    let operations: Vec<Operation> = vec![
+    let operations: Vec<DerivedStream> = vec![
         Operation::Binary {
             bin_op: BinaryOperators::Equal,
             idx_lhs: 1,
@@ -508,9 +396,11 @@ fn always_nested_device_stack_false() {
 }
 
 #[test]
+/// Prop: [] t%24s = 0S -> always[0,24] sumtime[24](1) < 24s;
+/// Violation: Look at the test data
 fn time_behaviour_test() {
     let operations = { 
-        use Operation::*;
+        use DerivedStream::*;
         vec![
             Binary { bin_op: BinaryOperators::Or, idx_lhs: 1, idx_rhs: 7, },
             Unary { un_op: UnaryOperators::Not, idx: 2, },
@@ -549,8 +439,8 @@ fn time_behaviour_test() {
     }
     // Test for violation at 23_000
     //Reset the property and set number as 23
-    streams[0].operations[12] = Operation::Number(23_000);
-    streams[0].operations[9] = Operation::TimeFunction { idx: 10, function_type: AggregateType::Sum, history: Vec::new(), bound: 24,};
+    streams[0].operations[12] = DerivedStream::Number(23_000);
+    streams[0].operations[9] = DerivedStream::TimeFunction { idx: 10, function_type: AggregateType::Sum, history: Vec::new(), bound: 24,};
     streams[0].time_verdicts.clear();
     let result = run_x_monitor_steps(streams, &device_stream, 0, 100);
     for (idx, value) in result {
@@ -562,8 +452,8 @@ fn time_behaviour_test() {
     }
 
     // Test no violation
-    streams[0].operations[12] = Operation::Number(25_000);
-    streams[0].operations[9] = Operation::TimeFunction { idx: 10, function_type: AggregateType::Sum, history: Vec::new(), bound: 24,};
+    streams[0].operations[12] = DerivedStream::Number(25_000);
+    streams[0].operations[9] = DerivedStream::TimeFunction { idx: 10, function_type: AggregateType::Sum, history: Vec::new(), bound: 24,};
     streams[0].time_verdicts.clear();
     let result = run_x_monitor_steps(streams, &device_stream, 0, 100);
     
@@ -573,6 +463,8 @@ fn time_behaviour_test() {
 
 
 #[test]
+/// [] <>[1,1] 1
+/// Violates: Never
 fn eventually_expr_true() {
     let operations = vec![
         Operation::LTLBounded { bound: (1,1), idx: 1, not: false, ltl_type: ExprLTL::Eventually(Vec::new()) },
@@ -589,6 +481,8 @@ fn eventually_expr_true() {
 }
 
 #[test]
+/// [] <>[1,1] 0
+/// Violates: false once, then true always
 fn eventually_expr_false() {
     let operations = vec![
             Operation::LTLBounded { bound: (1,1), idx: 1, not: false, ltl_type: ExprLTL::Eventually(Vec::new()) },
@@ -609,9 +503,11 @@ fn eventually_expr_false() {
 }
 
 #[test]
+/// Prop: [] <>[2,5] t = 2;
+/// Violation: Never
 fn eventually_expr_time_true() {
     let operations = {
-        use Operation::*;
+        use DerivedStream::*;
         vec![
             LTLBounded { bound: ( 2, 5 ), idx: 1, not: false, ltl_type: ExprLTL::Eventually(Vec::new())},
             Binary {bin_op: BinaryOperators::NotEqual, idx_lhs: 2,idx_rhs: 3},
@@ -631,9 +527,11 @@ fn eventually_expr_time_true() {
 }
 
 #[test]
+/// Prop: always (t = 0) -> (always[6,6](always[9,9]0));
+/// Violation: Gives vilolation at 15, and only 15
 fn always_always_always(){
     let operations = {
-        use Operation::*;
+        use DerivedStream::*;
         vec![
             Binary {
                     bin_op: BinaryOperators::Or,

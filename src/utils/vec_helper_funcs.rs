@@ -11,12 +11,14 @@ pub trait ExtVec<T> {
 }
 
 impl<T> ExtVec<T> for Vec<T> {
+    #[inline]
     /// Consumes the vec, pushes an item, and returns the vec.
     fn with(mut self, item: T) -> Self {
         self.push(item);
         self 
     }
 
+    #[inline]
     /// Consumes the vec, extends it with an iterator, and returns the vec.
     fn chain<I: IntoIterator<Item = T>>(mut self, iter: I) -> Self {
         self.extend(iter);

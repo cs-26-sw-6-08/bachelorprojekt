@@ -1,4 +1,4 @@
-use crate::{monitor_setup::operation_types::{AggregateType, ExprLTL, Operation}, program::{function_types::FunctionType, member_types::MemberType, operations::BinaryOperators}, utils::test_helper_func::*};
+use crate::{monitor_setup::operation_types::{AggregateType, ExprLTL, DerivedStream}, program::{function_types::FunctionType, member_types::MemberType, operations::BinaryOperators}, utils::test_helper_func::*};
 use crate::program::{operations::UnaryOperators};
 
 

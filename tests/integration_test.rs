@@ -1,6 +1,6 @@
 use rv_iot::{
-    monitor::streams::PropertyStream,
-    monitor_setup::operation_types::{AggregateType, Operation, PropLTL},
+    monitor::streams::OutputStream,
+    monitor_setup::operation_types::{AggregateType, DerivedStream, PropLTL},
     program::{
         Program,
         expressions::SpannedExpr,
@@ -299,7 +299,7 @@ fn test8() {
     assert!(program.compile_properties().is_ok());
 
     let expected_env = [
-        PropertyStream::from((
+        OutputStream::from((
             PropLTL::Always,
             vec![
                 Operation::Unary { un_op: UnaryOperators::Not, idx: 1 },
@@ -320,7 +320,7 @@ fn test8() {
             ],
             None,
         )),
-        PropertyStream::from((
+        OutputStream::from((
             PropLTL::Always,
             vec![
                 Operation::Binary {

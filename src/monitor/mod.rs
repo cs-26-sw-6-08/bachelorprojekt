@@ -9,7 +9,7 @@ mod streams_test;
 mod operation_eval_test;
 
 use std::error::Error;
-use crate::{errors, monitor::{streams::{IoTStream, PropertyStream}}, program::Program};
+use crate::{errors, monitor::{streams::{IoTStream, OutputStream}}, program::Program};
 use tokio::time::{Duration, interval};
 use std::time::Instant;
 
@@ -46,7 +46,7 @@ impl Program {
 
             // let devices: IoTStream = ( instrumentation.fetch_device_states().await ).into();
             #[cfg(debug_assertions)]
-            let devices: IoTStream = IoTStream.into()
+            // let devices: IoTStream = IoTStream.into();
             
             
 
@@ -71,7 +71,7 @@ impl Program {
         }
     }
 
-    pub fn monitor_logic<'a>(env: &'a mut [PropertyStream], t: &'a i128, device_stream: &'a IoTStream) -> Box<dyn Iterator<Item = MonitorElement> + 'a> {
+    pub fn monitor_logic<'a>(env: &'a mut [OutputStream], t: &'a i128, device_stream: &'a IoTStream) -> Box<dyn Iterator<Item = MonitorElement> + 'a> {
         Box::new(
             env
                 .iter_mut()

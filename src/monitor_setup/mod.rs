@@ -5,7 +5,7 @@ pub mod operation_types;
 mod rules_test;
 
 use std::{error::Error};
-use crate::{errors, monitor_setup::operation_types::PropLTL, program::{Program, expressions::Expr}};
+use crate::{errors, program::{Program, expressions::Expr}};
 
 impl Program {
     pub fn compile_properties(&mut self) -> Result<(), Box<dyn Error>> {

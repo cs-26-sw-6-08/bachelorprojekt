@@ -1,11 +1,13 @@
-use crate::{monitor::{operation_eval::eval_operations, streams::IoTStream, types::StreamOutput}, monitor_setup::operation_types::{AggregateType, ExprLTL, Operation}, program::{member_types::MemberType, operations::{BinaryOperators, UnaryOperators}}, utils::test_helper_func::mock_devices};
+use crate::{monitor::{operation_eval::eval_operations, streams::IoTStream, types::StreamOutput}, monitor_setup::operation_types::{AggregateType, ExprLTL, DerivedStream}, program::{member_types::MemberType, operations::{BinaryOperators, UnaryOperators}}, utils::test_helper_func::mock_devices};
+
 
 #[test]
 fn test_constants() {
+
     let mut operations = [
-        Operation::Number(4000),
-        Operation::String("christian".into()),
-        Operation::SpawnTime,
+        DerivedStream::Number(4000),
+        DerivedStream::String("christian".into()),
+        DerivedStream::SpawnTime,
     ];
     let (spawn_t, cur_t) = (0, 1);
     let devices = mock_devices(1).into();
@@ -31,18 +33,18 @@ fn test_constants() {
 #[test]
 fn aggregate_functions() {
     let mut sum = [
-        Operation::AggregateFunction { idx: 1, function_type: AggregateType::Sum },
-        Operation::Member(MemberType::Power)
+        DerivedStream::AggregateFunction { idx: 1, function_type: AggregateType::Sum },
+        DerivedStream::Member(MemberType::Power)
     ];
     let mut avg = [
-        Operation::AggregateFunction { idx: 1, function_type: AggregateType::Avg },
-        Operation::Member(MemberType::Power)
+        DerivedStream::AggregateFunction { idx: 1, function_type: AggregateType::Avg },
+        DerivedStream::Member(MemberType::Power)
     ];
     let mut foreach = [
-        Operation::Foreach { idx: 1 },
-        Operation::Binary { bin_op: BinaryOperators::Equal, idx_lhs: 2, idx_rhs: 3 },
-        Operation::Member(MemberType::Power),
-        Operation::Number(10)
+        DerivedStream::Foreach { idx: 1 },
+        DerivedStream::Binary { bin_op: BinaryOperators::Equal, idx_lhs: 2, idx_rhs: 3 },
+        DerivedStream::Member(MemberType::Power),
+        DerivedStream::Number(10)
     ];
     let (spawn_t, cur_t) = (0, 1);
     let devices: IoTStream = mock_devices(3).into();
@@ -76,10 +78,10 @@ fn aggregate_functions() {
 #[test]
 fn ltl_expressions_always_unbounded() {
     let mut always_unb = [
-        Operation::LTLAlwaysUnbounded { idx: 1 }, 
-        Operation::Binary { bin_op: BinaryOperators::NotEqual, idx_lhs: 2, idx_rhs: 3 },
-        Operation::SpawnTime, 
-        Operation::Number(10000)
+        DerivedStream::LTLAlwaysUnbounded { idx: 1 }, 
+        DerivedStream::Binary { bin_op: BinaryOperators::NotEqual, idx_lhs: 2, idx_rhs: 3 },
+        DerivedStream::SpawnTime, 
+        DerivedStream::Number(10000)
     ];
     let devices: IoTStream = mock_devices(3).into();
     //Should be false for all times, when t != 10
@@ -96,16 +98,16 @@ fn ltl_expressions_always_unbounded() {
 fn ltl_expressions_bounded() {
     //1,2,3,4
     let ops = [
-         Operation::Binary { bin_op: BinaryOperators::NotEqual, idx_lhs: 2, idx_rhs: 3 },
-        Operation::SpawnTime, 
-        Operation::Number(2000)
+         DerivedStream::Binary { bin_op: BinaryOperators::NotEqual, idx_lhs: 2, idx_rhs: 3 },
+        DerivedStream::SpawnTime, 
+        DerivedStream::Number(2000)
     ];
     let mut always = [
-        Operation::LTLBounded { bound: (1,4), idx: 1, not: false, ltl_type: ExprLTL::Always }, 
+        DerivedStream::LTLBounded { bound: (1,4), idx: 1, not: false, ltl_type: ExprLTL::Always }, 
     ].into_iter().chain(ops.clone()).collect::<Vec<_>>();
     // [][1,4] t=2
     let mut eventually = [
-        Operation::LTLBounded { bound: (1,4), idx: 1, not: false, ltl_type: ExprLTL::Eventually(Vec::new()) }, 
+        DerivedStream::LTLBounded { bound: (1,4), idx: 1, not: false, ltl_type: ExprLTL::Eventually(Vec::new()) }, 
     ].into_iter().chain(ops.clone()).collect::<Vec<_>>();
     let devices: IoTStream = mock_devices(3).into();
 
@@ -149,9 +151,9 @@ fn ltl_expressions_bounded() {
 fn time_functions_unbounded() {
     let devices = mock_devices(5).into();
     let mut sumtime_unbounded = [
-        Operation::TimeFunction { idx: 1, function_type: AggregateType::Sum, history: Vec::new(), bound: 100 },
-        Operation::AggregateFunction { idx: 2, function_type: AggregateType::Sum }, 
-        Operation::Number(1_000)
+        DerivedStream::TimeFunction { idx: 1, function_type: AggregateType::Sum, history: Vec::new(), bound: 100 },
+        DerivedStream::AggregateFunction { idx: 2, function_type: AggregateType::Sum }, 
+        DerivedStream::Number(1_000)
     ];
     let eval_res = (0..=2).try_fold(StreamOutput::from(0), |_, t_c| {
          eval_operations(&mut sumtime_unbounded, &devices, &0, &t_c)
@@ -181,9 +183,9 @@ fn time_functions_unbounded() {
         if let Operation::TimeFunction { history, .. } = &sumtime_unbounded[0] { history.len() } else { 0 }
     );
     let mut avg_time = [
-        Operation::TimeFunction { idx: 1, function_type: AggregateType::Avg, history: Vec::new(), bound: 100 },
-        Operation::AggregateFunction { idx: 2, function_type: AggregateType::Sum }, 
-        Operation::Number(1_000)
+        DerivedStream::TimeFunction { idx: 1, function_type: AggregateType::Avg, history: Vec::new(), bound: 100 },
+        DerivedStream::AggregateFunction { idx: 2, function_type: AggregateType::Sum }, 
+        DerivedStream::Number(1_000)
     ];
     let eval_res = (0..=100).try_fold(StreamOutput::from(0), |_, t_c| {
          eval_operations(&mut avg_time, &devices, &0, &t_c)
@@ -194,9 +196,9 @@ fn time_functions_unbounded() {
     );
 
     let mut avg_time = [
-        Operation::TimeFunction { idx: 1, function_type: AggregateType::Avg, history: Vec::new(), bound: 100 },
-        Operation::AggregateFunction { idx: 2, function_type: AggregateType::Sum }, 
-        Operation::Number(1_000)
+        DerivedStream::TimeFunction { idx: 1, function_type: AggregateType::Avg, history: Vec::new(), bound: 100 },
+        DerivedStream::AggregateFunction { idx: 2, function_type: AggregateType::Sum }, 
+        DerivedStream::Number(1_000)
     ];
     (0..100).for_each(|val| {
         assert_eq!(
@@ -211,9 +213,9 @@ fn time_functions_unbounded() {
 fn time_functions_bounded() {
     let devices = mock_devices(5).into();
     let mut sumtime_bounded = [
-        Operation::TimeFunction { idx: 1, function_type: AggregateType::Sum, history: Vec::new(), bound: 5 },
-        Operation::AggregateFunction { idx: 2, function_type: AggregateType::Sum }, 
-        Operation::Number(1_000)
+        DerivedStream::TimeFunction { idx: 1, function_type: AggregateType::Sum, history: Vec::new(), bound: 5 },
+        DerivedStream::AggregateFunction { idx: 2, function_type: AggregateType::Sum }, 
+        DerivedStream::Number(1_000)
     ];
     //check whether value become decided when out of bounds
     let eval_res = (0..=6).try_fold(StreamOutput::from(0), |_, t_c| {
@@ -255,10 +257,10 @@ fn check_undecided_operations() {
     ];  
     for (op, expected_val) in bin_ops.into_iter().zip(expected_results) {
         let mut operations =  [ 
-            Operation::Binary { bin_op: op.clone(), idx_lhs: 1, idx_rhs: 2 },
-            Operation::Number(10_000), 
-            Operation::LTLBounded { bound: (0, 1000), idx: 3, not: false, ltl_type: ExprLTL::Eventually(Vec::new()) },
-            Operation::Number(0)
+            DerivedStream::Binary { bin_op: op.clone(), idx_lhs: 1, idx_rhs: 2 },
+            DerivedStream::Number(10_000), 
+            DerivedStream::LTLBounded { bound: (0, 1000), idx: 3, not: false, ltl_type: ExprLTL::Eventually(Vec::new()) },
+            DerivedStream::Number(0)
         ];
         assert_eq!(
             expected_val,
@@ -268,14 +270,14 @@ fn check_undecided_operations() {
 
     
     let mut negate_ops =  [ 
-        Operation::Unary { un_op: UnaryOperators::Negative, idx: 1 },
-        Operation::LTLBounded { bound: (0,1000), idx:2, not:false, ltl_type: ExprLTL::Eventually(Vec::new()) },
-        Operation::Number(0) 
+        DerivedStream::Unary { un_op: UnaryOperators::Negative, idx: 1 },
+        DerivedStream::LTLBounded { bound: (0,1000), idx:2, not:false, ltl_type: ExprLTL::Eventually(Vec::new()) },
+        DerivedStream::Number(0) 
     ];
      let mut not_ops =  [ 
-        Operation::Unary { un_op: UnaryOperators::Not, idx: 1 },
-        Operation::LTLBounded { bound: (0,1000), idx:2, not:false, ltl_type: ExprLTL::Eventually(Vec::new()) },
-        Operation::Number(0) 
+        DerivedStream::Unary { un_op: UnaryOperators::Not, idx: 1 },
+        DerivedStream::LTLBounded { bound: (0,1000), idx:2, not:false, ltl_type: ExprLTL::Eventually(Vec::new()) },
+        DerivedStream::Number(0) 
     ];
     assert_eq!(
         StreamOutput::from(0).to_undecided(),
@@ -293,17 +295,17 @@ fn check_undecided_operations() {
 fn test_edge_case_modulo() {
     let devices = mock_devices(1).into();
     let mut modulo = [
-        Operation::Binary { bin_op: BinaryOperators::Mod, idx_lhs: 1, idx_rhs: 2 },
-        Operation::Number(10_000),
-        Operation::Number(6_000)
+        DerivedStream::Binary { bin_op: BinaryOperators::Mod, idx_lhs: 1, idx_rhs: 2 },
+        DerivedStream::Number(10_000),
+        DerivedStream::Number(6_000)
     ];
     assert_eq!(
         StreamOutput::from(4_000),
         eval_operations(&mut modulo, &devices, &0, &0).unwrap()
     );
     //change the order of  10 and 6;
-    modulo[1] = Operation::Number(6_000);
-    modulo[2] = Operation::Number(10_000);
+    modulo[1] = DerivedStream::Number(6_000);
+    modulo[2] = DerivedStream::Number(10_000);
 
      assert_eq!(
         StreamOutput::from(6_000),
@@ -333,9 +335,9 @@ fn binary_operations() {
     ];  
     for (op, expected_val) in bin_ops.into_iter().zip(expected_results) {
         let mut operations =  [ 
-            Operation::Binary { bin_op: op.clone(), idx_lhs: 1, idx_rhs: 2 },
-            Operation::Number(10_000), 
-            Operation::Number(2_000)
+            DerivedStream::Binary { bin_op: op.clone(), idx_lhs: 1, idx_rhs: 2 },
+            DerivedStream::Number(10_000), 
+            DerivedStream::Number(2_000)
         ];
         assert_eq!(
             expected_val,
@@ -349,12 +351,12 @@ fn unary_operations_test() {
     let devices = mock_devices(3).into();
     
     let mut negate_ops =  [ 
-        Operation::Unary { un_op: UnaryOperators::Negative, idx: 1 },
-        Operation::Number(10_000), 
+        DerivedStream::Unary { un_op: UnaryOperators::Negative, idx: 1 },
+        DerivedStream::Number(10_000), 
     ];
      let mut not_ops =  [ 
-        Operation::Unary { un_op: UnaryOperators::Not, idx: 1 },
-        Operation::Number(1_000), 
+        DerivedStream::Unary { un_op: UnaryOperators::Not, idx: 1 },
+        DerivedStream::Number(1_000), 
     ];
     assert_eq!(
         StreamOutput::from(-10_000),

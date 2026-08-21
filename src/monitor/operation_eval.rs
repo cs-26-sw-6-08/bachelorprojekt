@@ -1,20 +1,20 @@
 use crate::{
     errors,
     monitor::{
-        streams::{IoTDevice, IoTStream, PropertyStream},
+        streams::{IoTDevice, IoTStream, OutputStream},
         types::{StackContent, StreamOutput, Verdict},
     },
-    monitor_setup::operation_types::{AggregateType, ExprLTL, HistoryValue, Operation, PropLTL},
+    monitor_setup::operation_types::{AggregateType, ExprLTL, HistoryValue, DerivedStream, PropLTL},
     program::{member_types::MemberType, operations::BinaryOperators},
     utils::vec_helper_funcs::ExtVec,
 };
 use std::{error::Error};
 
-impl PropertyStream {
+impl OutputStream {
     // Calculate the verdict for the output stream.
     pub fn update(&mut self, t_current: i128, devices: &IoTStream) -> Result<(), Box<dyn Error>> {
-        for (t_spawn, ver) in self.time_verdicts.iter_mut() {
-            let res = eval_operations(&mut self.operations, devices, &*t_spawn, &t_current);
+        for (t_spawn, ver) in self.unresolved_timepoints.iter_mut() {
+            let res = eval_operations(&mut self.derived_streams, devices, &*t_spawn, &t_current);
 
             match &mut self.ltl {
                 PropLTL::Always => {
@@ -66,7 +66,7 @@ impl<'a> From<&'a IoTDevice> for DeviceStack<'a> {
 }
 
 pub(crate) fn eval_operations<'a>(
-    operations: &mut [Operation],
+    operations: &mut [DerivedStream],
     devices: &'a IoTStream,
     t_spawn: &i128,
     t_current: &i128,
@@ -82,24 +82,24 @@ pub(crate) fn eval_operations<'a>(
     worklist_stack.push((0usize, StepType::Deepen));
 
     while let Some((cur_idx, step_type)) = worklist_stack.pop() {
-        let cur_op = &mut operations[cur_idx] as *mut Operation;
+        let cur_op = &mut operations[cur_idx] as *mut DerivedStream;
 
         match (unsafe { &mut *cur_op }, step_type) {
             // Base cases
-            (Operation::Number(val), _) => value_stack.push((*val).into()),
-            (Operation::String(str), _) => value_stack.push((&*str).into()),
-            (Operation::SpawnTime, _) => value_stack.push((time_offset_stack.last().map(|(ts,_)| ts).unwrap_or(t_spawn) * 1_000).into()),
-            (Operation::Member(mem_type), _) => {
+            (DerivedStream::Number(val), _) => value_stack.push((*val).into()),
+            (DerivedStream::String(str), _) => value_stack.push((&*str).into()),
+            (DerivedStream::SpawnTime, _) => value_stack.push((time_offset_stack.last().map(|(ts,_)| ts).unwrap_or(t_spawn) * 1_000).into()),
+            (DerivedStream::Member(mem_type), _) => {
                 value_stack.push(match mem_type {
                     MemberType::Power =>  device_pointer.ok_or(errors::Error::DevicePointer)?.power.into(),
                     MemberType::Name =>  StreamOutput::from(device_pointer.map(|d| &d.name).ok_or(errors::Error::DevicePointer)?),
                 });
             }
             // BinOp / UnOp
-            (Operation::Binary { idx_lhs, .. }, Deepen) => {
+            (DerivedStream::Binary { idx_lhs, .. }, Deepen) => {
                 worklist_stack.extend([(cur_idx, ReducePartial), (*idx_lhs, Deepen)]);
             }
-            (Operation::Binary { bin_op, idx_rhs, .. }, ReducePartial) => {
+            (DerivedStream::Binary { bin_op, idx_rhs, .. }, ReducePartial) => {
                 //If the binary operation is an 'or' and returned true, then the rest shouldn't be evaluated
                 // Read as: 'or' -> last_val.is_false && last_val.is_decided
                 if !matches!(bin_op, BinaryOperators::Or)
@@ -113,33 +113,33 @@ pub(crate) fn eval_operations<'a>(
                     worklist_stack.extend([(cur_idx, Reduce), (*idx_rhs, Deepen)]);
                 }
             }
-            (Operation::Binary { bin_op, .. }, Reduce) => {
+            (DerivedStream::Binary { bin_op, .. }, Reduce) => {
                 let v_rhs = value_stack.pop_or_err()?;
                 let v_lhs = value_stack.pop_or_err()?;
                 value_stack.push(v_lhs.bin_op(v_rhs, bin_op));
             }
-            (Operation::Unary { idx, .. }, Deepen) => {
+            (DerivedStream::Unary { idx, .. }, Deepen) => {
                 worklist_stack.extend([(cur_idx, Reduce), (*idx, Deepen)]);
             }
-            (Operation::Unary { un_op, .. }, Reduce) => {
+            (DerivedStream::Unary { un_op, .. }, Reduce) => {
                 let res = value_stack.pop_or_err()?.un_op(un_op);
                 value_stack.push(res);
             }
 
             // Aggregate Functions
-            (Operation::AggregateFunction { .. }, Deepen) => {
+            (DerivedStream::AggregateFunction { .. }, Deepen) => {
                 worklist_stack.extend([(cur_idx, ReducePartial)]);
 
                 //Put devices on device stack and pop the first
                 device_stack.push(DeviceStack::LayerShift);
-                for d in devices.get_devices(){
+                for d in devices.get_devices(cur_idx){
                     device_stack.push(d.into());
                 }
                 //Accumulation starts at zero
                 value_stack.push(0.into());
                 value_stack.push(0.into());
             }
-            (Operation::AggregateFunction { idx, .. }, ReducePartial) => {
+            (DerivedStream::AggregateFunction { idx, .. }, ReducePartial) => {
                 //Pop the accumulated value and newest value on the stack and add them
                 let res = value_stack.pop_or_err()? + value_stack.pop_or_err()?;
                 value_stack.push(res);
@@ -155,22 +155,22 @@ pub(crate) fn eval_operations<'a>(
                     }
                 }
             }
-            (Operation::AggregateFunction { function_type, .. }, Reduce) => {
+            (DerivedStream::AggregateFunction { function_type, .. }, Reduce) => {
                 let res = value_stack.pop_or_err()?;
                 value_stack.push(match function_type {
                     AggregateType::Sum => res,
-                    AggregateType::Avg => res / (devices.get_devices().len() as i128).into(),
+                    AggregateType::Avg => res / (devices.get_devices(cur_idx).len() as i128).into(),
                 });
             }
-            (Operation::Foreach { .. }, Deepen) => {
+            (DerivedStream::Foreach { .. }, Deepen) => {
                 worklist_stack.push((cur_idx, Reduce));
                 device_stack.push(DeviceStack::LayerShift);
-                for d in devices.get_devices(){
+                for d in devices.get_devices(cur_idx){
                     device_stack.push(d.into());
                 }
                 value_stack.push(true.into())
             }
-            (Operation::Foreach { idx }, Reduce) => {
+            (DerivedStream::Foreach { idx }, Reduce) => {
                 //Violation didn't occur and not all devices have been looked at
                 if value_stack
                     .last()
@@ -190,7 +190,7 @@ pub(crate) fn eval_operations<'a>(
             }
             // Time functions
             (
-                Operation::TimeFunction {
+                DerivedStream::TimeFunction {
                     idx,
                     bound,
                     history,
@@ -218,7 +218,7 @@ pub(crate) fn eval_operations<'a>(
                 }
             }
             (
-                Operation::TimeFunction {
+                DerivedStream::TimeFunction {
                     function_type,
                     history,
                     bound,
@@ -233,10 +233,10 @@ pub(crate) fn eval_operations<'a>(
             }
 
             // LTL
-            (Operation::LTLAlwaysUnbounded { idx }, Deepen) => {
+            (DerivedStream::LTLAlwaysUnbounded { idx }, Deepen) => {
                 worklist_stack.push((*idx, Deepen));
             },
-            (Operation::LTLBounded { idx, bound, ltl_type, .. }, Deepen) => {
+            (DerivedStream::LTLBounded { idx, bound, ltl_type, .. }, Deepen) => {
                 let (a,b) = bound;
                 let (t_lower, t_upper) = time_offset_stack.last().map(|(v1,v2)| (*v1,*v2)).unwrap_or((*t_spawn, *t_spawn));
                 //If over bound, should add verdict to stack and move back up
@@ -281,7 +281,7 @@ pub(crate) fn eval_operations<'a>(
                     
                 }
             }
-            (Operation::LTLBounded { not, bound, ltl_type, .. }, Reduce) => {
+            (DerivedStream::LTLBounded { not, bound, ltl_type, .. }, Reduce) => {
                 let (_, t_upper) = time_offset_stack.pop_or_err()?; 
 
                 match ltl_type {

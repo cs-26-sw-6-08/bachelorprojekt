@@ -1,4 +1,4 @@
-use crate::{monitor_setup::operation_types::{AggregateType, ExprLTL, DerivedStream}, program::{function_types::FunctionType, member_types::MemberType, operations::BinaryOperators}, utils::test_helper_func::*};
+use crate::{monitor_setup::operation_types::{DerivedStream, MIITLType}, program::{function_types::FunctionType, member_types::MemberType, operations::BinaryOperators::{self, Divide}}, utils::test_helper_func::*};
 use crate::program::{operations::UnaryOperators};
 
 
@@ -7,43 +7,43 @@ fn constant_rules() {
     let expr = custom_number_expr(10_000);
     let yes_expr = expr.compile_expression();
     assert!(yes_expr.is_ok());
-    assert_eq!(yes_expr.unwrap(), vec![Operation::Number(10_000)]);
+    assert_eq!(yes_expr.unwrap(), vec![DerivedStream::Number(10_000)]);
 
     let expr = string_expr();
     let yes_expr = expr.compile_expression();
     assert!(yes_expr.is_ok());
-    assert_eq!(yes_expr.unwrap(), vec![Operation::String(String::from("christian"))]);
+    assert_eq!(yes_expr.unwrap(), vec![DerivedStream::String(String::from("christian"))]);
 
     let expr = current_time();
     let yes_expr = expr.compile_expression();
     assert!(yes_expr.is_ok());
-    assert_eq!(yes_expr.unwrap(), vec![Operation::SpawnTime]);
+    assert_eq!(yes_expr.unwrap(), vec![DerivedStream::SpawnTime]);
     
     let expr = member_expr(MemberType::Name);
     let yes_expr = expr.compile_expression();
     assert!(yes_expr.is_ok());
-    assert_eq!(yes_expr.unwrap(), vec![Operation::Member(MemberType::Name)]);
+    assert_eq!(yes_expr.unwrap(), vec![DerivedStream::Member(MemberType::Name)]);
     
     let expr = member_expr(MemberType::Power);
     let yes_expr = expr.compile_expression();
     assert!(yes_expr.is_ok());
-    assert_eq!(yes_expr.unwrap(), vec![Operation::Member(MemberType::Power)]);
+    assert_eq!(yes_expr.unwrap(), vec![DerivedStream::Member(MemberType::Power)]);
 }
 
 
 #[test]
 fn ltl_rules() {
-    //Always Unbounded
+    //Always Unbounded NOT POSSIBLE ANYMORE
     let num_expr = number_expr();
-    let compiled_expr = always_expr(num_expr.clone()).compile_expression();
-    assert!(compiled_expr.is_ok());
-    assert_eq!(
-        compiled_expr.unwrap().as_slice(), 
-        [
-            Operation::LTLAlwaysUnbounded { idx: 1 }, 
-            Operation::Number(5000)
-        ]
-    );
+    // let compiled_expr = always_expr(num_expr.clone()).compile_expression();
+    // assert!(compiled_expr.is_ok());
+    // assert_eq!(
+    //     compiled_expr.unwrap().as_slice(), 
+    //     [
+    //         DerivedStream::LTLAlwaysUnbounded { idx: 1 }, 
+    //         DerivedStream::Number(5000)
+    //     ]
+    // );
 
     //Always bounded
     let interval = interval_expr(custom_number_expr(10000), custom_number_expr(20000));
@@ -52,11 +52,11 @@ fn ltl_rules() {
     assert_eq!(
         compiled_expr.unwrap().as_slice(), 
         [
-            Operation::LTLBounded { bound: (10, 20), idx: 1, not: false, ltl_type: ExprLTL::Always }, 
-            Operation::Number(5000)
+            DerivedStream::Miitl { bound: (10, 20), idx: 1,  miitl_type: MIITLType::Always }, 
+            DerivedStream::Number(5000)
         ]
     );
-    
+
     //Eventually bounded
     let interval = interval_expr(custom_number_expr(10000), custom_number_expr(20000));
     let compiled_expr = eventually_interval_expr(interval, num_expr.clone()).compile_expression();
@@ -64,16 +64,16 @@ fn ltl_rules() {
     assert_eq!(
         compiled_expr.unwrap().as_slice(), 
         [
-            Operation::LTLBounded { bound: (10, 20), idx: 1, not: false, ltl_type: ExprLTL::Eventually(Vec::new()) }, 
-            Operation::Number(5000)
+            DerivedStream::Miitl { bound: (10, 20), idx: 1, miitl_type: MIITLType::Eventually }, 
+            DerivedStream::Number(5000)
         ]
     );
-    
+
     //Illegals
     let illegals = [eventually_expr(num_expr.clone()), always_negated_expr(num_expr.clone())];
     assert!(illegals.iter().all(|ill| ill.compile_expression().is_err()));
-    
-    
+
+
 }
 
 #[test]
@@ -96,7 +96,7 @@ fn binary_rules() {
         let expr = binary_expr(custom_number_expr(10_000),custom_number_expr(10_000),cur_type.clone());
         let yes_expr = expr.compile_expression();
         assert!(yes_expr.is_ok());
-        assert_eq!(yes_expr.unwrap(), vec![Operation::Binary { bin_op: cur_type, idx_lhs: 1, idx_rhs: 2 }, Operation::Number(10_000), Operation::Number(10_000)]);
+        assert_eq!(yes_expr.unwrap(), vec![DerivedStream::Binary { bin_op: cur_type, idx_lhs: 1, idx_rhs: 2 }, DerivedStream::Number(10_000), DerivedStream::Number(10_000)]);
     }
 }
 
@@ -110,7 +110,7 @@ fn unary_rules() {
         let expr = unary_expr(custom_number_expr(10_000),cur_type.clone());
         let yes_expr = expr.compile_expression();
         assert!(yes_expr.is_ok());
-        assert_eq!(yes_expr.unwrap(), vec![Operation::Unary { un_op: cur_type, idx: 1 }, Operation::Number(10_000)]);
+        assert_eq!(yes_expr.unwrap(), vec![DerivedStream::Unary { un_op: cur_type, idx: 1 }, DerivedStream::Number(10_000)]);
     }
 }
 
@@ -136,11 +136,32 @@ fn function_rules() {
         let yes_expr = expr.compile_expression();
         assert!(yes_expr.is_ok());
         match cur_type.clone(){
-            FunctionType::Sum => assert_eq!(yes_expr.unwrap(), vec![Operation::AggregateFunction { idx: 1, function_type: AggregateType::Sum }, Operation::Number(10_000)]),
-            FunctionType::Avg => assert_eq!(yes_expr.unwrap(), vec![Operation::AggregateFunction { idx: 1, function_type: AggregateType::Avg }, Operation::Number(10_000)]),
-            FunctionType::Sumtime => assert_eq!(yes_expr.unwrap(), vec![Operation::TimeFunction { idx: 1, function_type: AggregateType::Sum, history: Vec::new(), bound: 100 }, Operation::AggregateFunction { idx: 2, function_type: AggregateType::Sum }, Operation::Number(10_000)]),
-            FunctionType::Avgtime => assert_eq!(yes_expr.unwrap(), vec![Operation::TimeFunction { idx: 1, function_type: AggregateType::Avg, history: Vec::new(), bound: 100 }, Operation::AggregateFunction { idx: 2, function_type: AggregateType::Sum }, Operation::Number(10_000)]),
-            FunctionType::Foreach => assert_eq!(yes_expr.unwrap(), vec![Operation::Foreach { idx: 1 }, Operation::Number(10_000)]),
+            FunctionType::Sum => assert_eq!(yes_expr.unwrap(), vec![DerivedStream::Sum { idx: 1 }, DerivedStream::Number(10_000)]),
+            FunctionType::Avg => assert_eq!(yes_expr.unwrap(), 
+                vec![
+                    DerivedStream::Binary { bin_op: Divide, idx_lhs: 1, idx_rhs: 3 },
+                    DerivedStream::Sum { idx: 2 },
+                    DerivedStream::Number(10_000),
+                    DerivedStream::Size
+                ]
+            ),
+            FunctionType::Foreach => assert_eq!(yes_expr.unwrap(), vec![DerivedStream::Foreach { idx: 1 }, DerivedStream::Number(10_000)]),
+            FunctionType::Sumtime => assert_eq!(yes_expr.unwrap(), 
+                vec![
+                    DerivedStream::Sumtime { interval_len: 100, idx: 1 }, 
+                    DerivedStream::Sum { idx: 2 },
+                    DerivedStream::Number(10_000)
+                ]
+            ),
+            FunctionType::Avgtime => assert_eq!(yes_expr.unwrap(), 
+                vec![
+                    DerivedStream::Binary { bin_op: Divide, idx_lhs: 1, idx_rhs: 4 },
+                    DerivedStream::Sumtime { interval_len: 100, idx: 2 },
+                    DerivedStream::Sum { idx: 3 }, 
+                    DerivedStream::Number(10_000),
+                    DerivedStream::Number(100 + 1)
+                ]
+            ),
             _ => unreachable!()
         }
     }
@@ -179,15 +200,15 @@ fn medium_expr() {
     assert_eq!(
         large_expr.compile_expression().unwrap(),
         [
-            Operation::Binary { bin_op: BinaryOperators::Less, idx_lhs: 1, idx_rhs: 8 },
-            Operation::TimeFunction { idx: 2, function_type: AggregateType::Sum, history: Vec::new(), bound: 100 },
-            Operation::AggregateFunction { idx: 3, function_type: AggregateType::Sum },
-            Operation::Binary { bin_op: BinaryOperators::Times, idx_lhs: 4, idx_rhs: 5 },
-            Operation::Member(MemberType::Power),
-            Operation::Binary { bin_op: BinaryOperators::Equal, idx_lhs: 6, idx_rhs: 7 },
-            Operation::Member(MemberType::Name),
-            Operation::String("christian".to_owned()),
-            Operation::Number(5_000)
+            DerivedStream::Binary { bin_op: BinaryOperators::Less, idx_lhs: 1, idx_rhs: 8 },
+            DerivedStream::Sumtime { idx: 2, interval_len: 100 },
+            DerivedStream::Sum { idx: 3 },
+            DerivedStream::Binary { bin_op: BinaryOperators::Times, idx_lhs: 4, idx_rhs: 5 },
+            DerivedStream::Member(MemberType::Power),
+            DerivedStream::Binary { bin_op: BinaryOperators::Equal, idx_lhs: 6, idx_rhs: 7 },
+            DerivedStream::Member(MemberType::Name),
+            DerivedStream::String("christian".to_owned()),
+            DerivedStream::Number(5_000)
         ]
     )
 }

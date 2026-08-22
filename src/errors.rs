@@ -44,8 +44,8 @@ pub enum Error {
     ValueStackVal,
     #[error("Illegal operation during evaluation")]
     IllegalOperation,
-    #[error("The environment have not been set for the program")]
-    EnvironmentNotPresent
+    #[error("The environment/device_len has not been set for the program")]
+    FieldNotPresent
 }
 
 impl PartialEq for Error {

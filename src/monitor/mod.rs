@@ -9,26 +9,34 @@ mod streams_test;
 mod operation_eval_test;
 
 use std::error::Error;
-use crate::{errors, monitor::streams::{IoTDevice, IoTStream, OutputStream}, program::Program};
+use crate::{errors, monitor::streams::{IoTStream, OutputStream}, program::Program};
 use tokio::time::{Duration, interval};
 use std::time::Instant;
 
 
 use colored::Colorize;
 
+/*
+ *  TODO:
+ *  1. Make algorithm for calculating size of IoTStream
+ *  2. Make algorithm for operation_eval
+ *  3. Fix tests
+ *  4. Integrate instrumentation
+ *  5. 
+  * */
 
 type MonitorElement = Result<(usize, bool), Box<dyn Error>>;
 
 impl Program {
     pub async fn monitor(&mut self, time_interval: i128, speed: bool) -> Result<(), Box<dyn Error>> {
         
-        let Some(streams) = &mut self.environment else { return Err(errors::Error::EnvironmentNotPresent.into()); };
+        let Some(streams) = &mut self.environment else { return Err(errors::Error::FieldNotPresent.into()); };
+        let Some(size) = self.device_len else { return Err(errors::Error::FieldNotPresent.into()); };
+
         let mut interval = interval(Duration::from_millis(time_interval as u64));
 
         let mut t = 0;
 
-        //Should be dynamic
-        let size = 10; 
         let mut cur_idx = 0;
         let mut devices = IoTStream::with_capacity(size);
 
@@ -52,20 +60,20 @@ impl Program {
             //Todo: This should be fixed
             if cfg!(debug_assertions) {     
                 // devices.push_at(instrumentation.fetch_device_states().await, cur_idx);
-                devices.push_at(todo!(), cur_idx);
+                devices.push_at(todo!(), cur_idx)?;
             } else {
-                devices.push_at(todo!(), cur_idx);
+                devices.push_at(todo!(), cur_idx)?;
             }
             cur_idx = (cur_idx + 1) % size;
             
             
 
             async {
-                // for el in Self::monitor_logic(streams, &t, &devices) {
-                //     let (prop_num, _ )=  el?; 
-                //     let msg = format!("Prop {} violated", prop_num + 1);
-                //     println!("\t{} at time: {}", msg.red().bold().underline(), format!("{}s",t).red().bold());
-                // }
+                for el in Self::monitor_logic(streams, &t, &devices) {
+                    let (prop_num, _ )=  el?; 
+                    let msg = format!("Prop {} violated", prop_num + 1);
+                    println!("\t{} at time: {}", msg.red().bold().underline(), format!("{}s",t).red().bold());
+                }
                 t += time_interval / 1000;
                 
                 Ok::<(), Box<dyn Error>>(())

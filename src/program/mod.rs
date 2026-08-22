@@ -15,6 +15,7 @@ mod program_test;
 pub struct Program {
     pub expressions: Vec<SpannedExpr>,
     pub environment: Option<Vec<OutputStream>>,
+    pub device_len: Option<usize>
 }
 
 impl Program {
@@ -35,7 +36,7 @@ impl Program {
 
         }
 
-        let program = Program { expressions: exprs, environment: None };
+        let program = Program { expressions: exprs, environment: None, device_len: None };
         Ok(program)
     }
 }

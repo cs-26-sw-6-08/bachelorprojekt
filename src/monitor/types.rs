@@ -89,15 +89,9 @@ impl StackContent<'_> {
         }
     }
 
-    pub fn get_num(&self) -> Result<i128, Box<dyn Error>> {
+    pub fn get_num(&self) -> Result<Option<i128>, Box<dyn Error>> {
         match self {
-            StackContent::Number(v) => {
-                if let Some(v) = v {
-                    Ok(*v)
-                } else {
-                    Ok(0)
-                }
-            }
+            StackContent::Number(v) =>  Ok(*v),
             _ => Err(errors::Error::ValueStackVal.into()),
         }
     }

@@ -11,7 +11,7 @@ use crate::{
     utils::vec_helper_funcs::ExtVec,
 };
 
-use std::{collections::HashSet, ops::Range};
+use std::collections::HashSet;
 
 use crate::{
     monitor::streams::{IoTStream, OutputStream},
@@ -267,5 +267,7 @@ pub fn always_prop_helper(derived_streams: Vec<DerivedStream>) -> Program {
             unresolved_timepoints: vec![],
             derived_streams,
         }]),
+        //todo: maybe change value here
+        device_len: Some(50)
     }
 }

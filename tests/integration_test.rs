@@ -1,14 +1,11 @@
 use rv_iot::{
-    monitor::streams::OutputStream,
-    monitor_setup::operation_types::{AggregateType, DerivedStream, PropLTL},
-    program::{
+    monitor::streams::OutputStream, monitor_setup::operation_types::DerivedStream, program::{
         Program,
         expressions::SpannedExpr,
         function_types::FunctionType,
         member_types::MemberType,
         operations::{BinaryOperators, UnaryOperators},
-    },
-    utils::test_helper_func::{
+    }, utils::test_helper_func::{
         always_expr, always_interval_expr, binary_expr, current_time, custom_number_expr, eventually_interval_expr, function_expr, interval_expr, member_expr, number_expr, string_expr, unary_expr
     },
 };
@@ -56,6 +53,7 @@ fn test1() {
             )),
         }],
         environment: None,
+        device_len: None
     };
 
     assert_eq!(program, expected_program);
@@ -90,6 +88,7 @@ fn test2() {
             )),
         }],
         environment: None,
+        device_len: None
     };
 
     assert_eq!(program, expected_program);
@@ -120,6 +119,7 @@ fn test3() {
             )),
         }],
         environment: None,
+        device_len: None
     };
 
 
@@ -162,6 +162,7 @@ fn test4() {
             )),
         }],
         environment: None,
+        device_len: None
     };
 
     assert_eq!(program, expected_program);
@@ -217,6 +218,7 @@ fn test5() {
             )),
         }],
         environment: None,
+        device_len: None
     };
 
     assert_eq!(program, expected_program);
@@ -249,6 +251,7 @@ fn test6() {
             )),
         }],
         environment: None,
+        device_len: None
     };
 
     assert_eq!(program, expected_program);
@@ -279,6 +282,7 @@ fn test7() {
             },
         ],
         environment: None,
+        device_len: None
     };
 
     assert_eq!(program, expected_program);
@@ -299,62 +303,55 @@ fn test8() {
     assert!(program.compile_properties().is_ok());
 
     let expected_env = [
-        OutputStream::from((
-            PropLTL::Always,
+        OutputStream::from(
             vec![
-                Operation::Unary { un_op: UnaryOperators::Not, idx: 1 },
-                Operation::Foreach { idx: 2 },
-                Operation::Binary {
+                DerivedStream::Unary { un_op: UnaryOperators::Not, idx: 1 },
+                DerivedStream::Foreach { idx: 2 },
+                DerivedStream::Binary {
                     bin_op: BinaryOperators::Or,
                     idx_lhs: 3,
                     idx_rhs: 4,
                 },
-                Operation::Number(0),
-                Operation::Binary {
+                DerivedStream::Number(0),
+                DerivedStream::Binary {
                     bin_op: BinaryOperators::Greater,
                     idx_lhs: 5,
                     idx_rhs: 6,
                 },
-                Operation::Member(MemberType::Power),
-                Operation::Number(5_000),
+                DerivedStream::Member(MemberType::Power),
+                DerivedStream::Number(5_000),
             ],
-            None,
-        )),
-        OutputStream::from((
-            PropLTL::Always,
+        ),
+        OutputStream::from(
             vec![
-                Operation::Binary {
+                DerivedStream::Binary {
                     bin_op: BinaryOperators::Less,
                     idx_lhs: 1,
                     idx_rhs: 8,
                 },
-                Operation::TimeFunction {
+                DerivedStream::Sumtime {
                     idx: 2,
-                    function_type: AggregateType::Sum,
-                    history: Vec::new(),
-                    bound: 15,
+                    interval_len: 15,
                 },
-                Operation::AggregateFunction {
+                DerivedStream::Sum {
                     idx: 3,
-                    function_type: AggregateType::Sum,
                 },
-                Operation::Binary {
+                DerivedStream::Binary {
                     bin_op: BinaryOperators::Times,
                     idx_lhs: 4,
                     idx_rhs: 5,
                 },
-                Operation::Member(MemberType::Power),
-                Operation::Binary {
+                DerivedStream::Member(MemberType::Power),
+                DerivedStream::Binary {
                     bin_op: BinaryOperators::Equal,
                     idx_lhs: 6,
                     idx_rhs: 7,
                 },
-                Operation::Member(MemberType::Name),
-                Operation::String("roomba".to_owned()),
-                Operation::Number(200_000),
+                DerivedStream::Member(MemberType::Name),
+                DerivedStream::String("roomba".to_owned()),
+                DerivedStream::Number(200_000),
             ],
-            None,
-        )),
+        ),
     ];
     assert_eq!(program.environment.unwrap().as_slice(), expected_env);
 }

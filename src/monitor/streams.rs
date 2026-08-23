@@ -75,6 +75,10 @@ impl IoTStream {
         &mut self.0[i]
     }
 
+    pub fn get_devices_own(&self, i: usize) -> Vec<IoTDevice> {
+        self.0[i].clone()
+    }
+
     pub fn get_all_own(self) -> Vec<Vec<IoTDevice>> {
         self.0
     }
@@ -93,3 +97,10 @@ impl From<Vec<Vec<IoTDevice>>> for IoTStream {
         Self(value)
     }
 }
+
+impl From<Vec<IoTDevice>> for IoTStream {
+    fn from(value: Vec<IoTDevice>) -> Self {
+        Self(vec![value])
+    }
+}
+

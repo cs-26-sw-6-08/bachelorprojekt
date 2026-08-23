@@ -5,7 +5,7 @@ use crate::{program::{
     member_types::MemberType,
     operations::{BinaryOperators, UnaryOperators},
     units::Unit,
-}, utils::test_helper_func::{ always_expr, binary_expr, custom_number_expr, string_expr, custom_unit_expr, eventually_expr, eventually_interval_expr, always_interval_expr, function_expr, interval_expr, member_expr, number_expr, unary_expr, unit_expr}
+}, utils::test_helper_func::{ always_expr, binary_expr, custom_number_expr, string_expr, custom_unit_expr, function_expr, member_expr, number_expr, unary_expr, unit_expr}
 };
 
 // #[test]

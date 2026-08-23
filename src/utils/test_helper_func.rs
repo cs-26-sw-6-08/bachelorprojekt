@@ -260,7 +260,7 @@ pub fn eventually_interval_expr(interval: Expr, expr: Expr) -> Expr {
 //     .into()
 // }
 
-pub fn always_prop_helper(derived_streams: Vec<DerivedStream>) -> Program {
+pub fn program_init(derived_streams: Vec<DerivedStream>) -> Program {
     Program {
         expressions: vec![],
         environment: Some(vec![OutputStream {

@@ -3,7 +3,7 @@ use std::{
     ops::Not,
 };
 
-use crate::errors;
+use crate::{errors, monitor::streams::IoTDevice};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Verdict {
@@ -97,6 +97,23 @@ impl StackContent<'_> {
     }
 }
 
+
+#[derive(PartialEq, Debug)]
+pub enum StepType {
+    Deepen,
+    Reduce,
+}
+#[derive(Debug)]
+pub enum DeviceStack<'a> {
+    Element(&'a IoTDevice),
+    LayerShift,
+}
+
+impl<'a> From<&'a IoTDevice> for DeviceStack<'a> {
+    fn from(value: &'a IoTDevice) -> Self {
+        DeviceStack::Element(value)
+    }
+}
 // impl<'a> StackContent<'a> {
 //     pub fn get_value(&self) -> &StackContent<'a> {
 //         &self.value

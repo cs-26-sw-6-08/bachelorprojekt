@@ -53,7 +53,7 @@ fn test1() {
             )),
         }],
         environment: None,
-        device_len: None
+        iotstream_len: None
     };
 
     assert_eq!(program, expected_program);
@@ -88,7 +88,7 @@ fn test2() {
             )),
         }],
         environment: None,
-        device_len: None
+        iotstream_len: None
     };
 
     assert_eq!(program, expected_program);
@@ -119,7 +119,7 @@ fn test3() {
             )),
         }],
         environment: None,
-        device_len: None
+        iotstream_len: None
     };
 
 
@@ -162,7 +162,7 @@ fn test4() {
             )),
         }],
         environment: None,
-        device_len: None
+        iotstream_len: None
     };
 
     assert_eq!(program, expected_program);
@@ -218,7 +218,7 @@ fn test5() {
             )),
         }],
         environment: None,
-        device_len: None
+        iotstream_len: None
     };
 
     assert_eq!(program, expected_program);
@@ -251,7 +251,7 @@ fn test6() {
             )),
         }],
         environment: None,
-        device_len: None
+        iotstream_len: None
     };
 
     assert_eq!(program, expected_program);
@@ -282,7 +282,7 @@ fn test7() {
             },
         ],
         environment: None,
-        device_len: None
+        iotstream_len: None
     };
 
     assert_eq!(program, expected_program);

@@ -31,7 +31,7 @@ impl Program {
     pub async fn monitor(&mut self, time_interval: i128, speed: bool) -> Result<(), Box<dyn Error>> {
         
         let Some(streams) = &mut self.environment else { return Err(errors::Error::FieldNotPresent.into()); };
-        let Some(size) = self.device_len else { return Err(errors::Error::FieldNotPresent.into()); };
+        let Some(size) = self.iotstream_len else { return Err(errors::Error::FieldNotPresent.into()); };
 
         let mut interval = interval(Duration::from_millis(time_interval as u64));
 

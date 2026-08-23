@@ -1,3 +1,6 @@
+use crate::monitor::streams::OutputStream;
+use crate::program::expressions::Expr;
+use crate::program::operations::BinaryOperators::Or;
 use crate::program::operations::UnaryOperators;
 use crate::{
     monitor_setup::operation_types::{DerivedStream, MIITLType},
@@ -294,4 +297,26 @@ fn medium_expr() {
             DerivedStream::Number(5_000)
         ]
     )
+}
+
+#[test]
+fn iot_stream_len() {
+    //[] [][5,200] 1 | <>[5,50] 1 | sumtime[201] 1
+    let num = custom_number_expr(1);
+    let fst_always = always_interval_expr(
+        interval_expr(custom_number_expr(5), custom_number_expr(200)),
+        num.clone(),
+    );
+    let snd_eventually = eventually_interval_expr(
+        interval_expr(custom_number_expr(5), custom_number_expr(50)),
+        num.clone(),
+    );
+    let trd_st = function_expr(FunctionType::Sumtime, num, Some(custom_number_expr(201)));
+
+    let large_expr: OutputStream = binary_expr(fst_always, binary_expr(snd_eventually, trd_st, Or), Or)
+        .compile_expression()
+        .unwrap()
+        .into();
+
+    assert_eq!(Expr::stream_max_bound(&large_expr).unwrap(), 201)
 }

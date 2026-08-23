@@ -268,6 +268,6 @@ pub fn program_init(derived_streams: Vec<DerivedStream>) -> Program {
             derived_streams,
         }]),
         //todo: maybe change value here
-        device_len: Some(50)
+        iotstream_len: Some(50)
     }
 }

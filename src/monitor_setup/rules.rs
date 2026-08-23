@@ -1,4 +1,6 @@
 use crate::errors;
+use crate::monitor::streams::OutputStream;
+use crate::monitor::types::StepType;
 use crate::utils::vec_helper_funcs::ExtVec;
 use crate::{
     monitor_setup::operation_types::{DerivedStream, MIITLType},
@@ -182,4 +184,61 @@ impl Expr {
             | Expr::Eventually { interval: None, .. } => Err(errors::Error::InvalidCompileExpr)?,
         })
     }
+
+    pub fn stream_max_bound(stream: &OutputStream) -> Result<usize, Box<dyn Error>> {
+        use StepType::*;
+
+        let mut idx_stack = vec![(0usize, Deepen)];
+        let mut size_stack: Vec<usize> = vec![0usize];
+
+        while let Some((cur_idx, step)) = idx_stack.pop() {
+            let cur_stream = &stream.derived_streams[cur_idx];
+            match (cur_stream, step) {
+                (DerivedStream::Number(_), Deepen) |
+                (DerivedStream::String(_), Deepen) |
+                (DerivedStream::Member(_), Deepen) |
+                (DerivedStream::SpawnTime, Deepen) |
+                (DerivedStream::Size, Deepen) => (),
+
+                (DerivedStream::Sum { idx }, Deepen)
+                | (DerivedStream::Foreach { idx }, Deepen)
+                | (DerivedStream::Unary { idx, .. }, Deepen)  => idx_stack.push((*idx, Deepen)),
+
+                (DerivedStream::Sumtime { idx , .. }, Deepen) => {
+                    idx_stack.push((cur_idx, Reduce));
+                    idx_stack.push((*idx, Deepen));
+                },
+                (DerivedStream::Sumtime { interval_len, .. }, Reduce) => {
+                    let size = size_stack.pop_or_err()?;
+                    size_stack.push(size + (*interval_len as usize));
+                },
+                (DerivedStream::Binary { idx_lhs, idx_rhs , .. }, Deepen) => {
+                    let size = size_stack.pop_or_err()?;
+                    size_stack.push(size);
+                    size_stack.push(size);
+
+                    idx_stack.push((cur_idx, Reduce));
+                    idx_stack.push((*idx_rhs, Deepen));
+                    idx_stack.push((*idx_lhs, Deepen));
+                },
+                (DerivedStream::Binary { .. }, Reduce) => {
+                    let rhs = size_stack.pop_or_err()?;
+                    let lhs = size_stack.pop_or_err()?;
+                    size_stack.push(rhs.max(lhs));
+                },
+                (DerivedStream::Miitl { idx , .. }, Deepen) => {
+                    idx_stack.push((cur_idx, Reduce));
+                    idx_stack.push((*idx, Deepen));
+                },
+                (DerivedStream::Miitl { bound,  .. }, Reduce) => {
+                    let (_, b) = bound;
+                    let size = size_stack.pop_or_err()?;
+                    size_stack.push(size + (*b as usize));
+                },
+                _ => unreachable!()
+            }
+        }
+        size_stack.pop_or_err()
+    }
+
 }

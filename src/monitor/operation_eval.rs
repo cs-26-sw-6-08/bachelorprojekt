@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use crate::{monitor::{streams::{IoTDevice, IoTStream, OutputStream}, types::{StackContent, Verdict}}, monitor_setup::operation_types::DerivedStream, utils::vec_helper_funcs::ExtVec};
+use crate::{monitor::{streams::{IoTDevice, IoTStream, OutputStream}, types::{DeviceStack, StackContent, StepType, Verdict}}, monitor_setup::operation_types::DerivedStream, utils::vec_helper_funcs::ExtVec};
 
 impl OutputStream {
     // Calculate the verdict for the output stream.
@@ -13,24 +13,6 @@ impl OutputStream {
             };
         }
         Ok(())
-    }
-}
-
-#[derive(PartialEq, Debug)]
-enum StepType {
-    Deepen,
-    Reduce,
-    ReducePartial,
-}
-#[derive(Debug)]
-enum DeviceStack<'a> {
-    Element(&'a IoTDevice),
-    LayerShift,
-}
-
-impl<'a> From<&'a IoTDevice> for DeviceStack<'a> {
-    fn from(value: &'a IoTDevice) -> Self {
-        DeviceStack::Element(value)
     }
 }
 

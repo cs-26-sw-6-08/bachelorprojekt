@@ -46,7 +46,7 @@ impl Expr {
                             miitl_type: match self {
                                 Expr::Always { .. } => MIITLType::Always,
                                 Expr::Eventually { .. } => MIITLType::Eventually,
-                                _ => unreachable!()
+                                _ => unreachable!(),
                             },
                         })
                         .chain(new_streams),
@@ -102,7 +102,7 @@ impl Expr {
                         new_key,
                     )
                 }
-                //todo: Check the logic here!!!! 
+                //todo: Check the logic here!!!!
                 // Avg should be sum(e) / size
                 FunctionType::Avg => {
                     let (new_streams, new_key) =
@@ -165,7 +165,11 @@ impl Expr {
                     let bound = bound.get_bound_time_function().map(|b| b / 1000)?;
                     (
                         streams
-                            .with(DerivedStream::Binary { bin_op: Divide, idx_lhs: key + 1, idx_rhs: new_key })
+                            .with(DerivedStream::Binary {
+                                bin_op: Divide,
+                                idx_lhs: key + 1,
+                                idx_rhs: new_key,
+                            })
                             .with(DerivedStream::Sumtime {
                                 idx: key + 2,
                                 interval_len: bound,
@@ -186,59 +190,34 @@ impl Expr {
     }
 
     pub fn stream_max_bound(stream: &OutputStream) -> Result<usize, Box<dyn Error>> {
-        use StepType::*;
-
-        let mut idx_stack = vec![(0usize, Deepen)];
-        let mut size_stack: Vec<usize> = vec![0usize];
-
-        while let Some((cur_idx, step)) = idx_stack.pop() {
-            let cur_stream = &stream.derived_streams[cur_idx];
-            match (cur_stream, step) {
-                (DerivedStream::Number(_), Deepen) |
-                (DerivedStream::String(_), Deepen) |
-                (DerivedStream::Member(_), Deepen) |
-                (DerivedStream::SpawnTime, Deepen) |
-                (DerivedStream::Size, Deepen) => (),
-
-                (DerivedStream::Sum { idx }, Deepen)
-                | (DerivedStream::Foreach { idx }, Deepen)
-                | (DerivedStream::Unary { idx, .. }, Deepen)  => idx_stack.push((*idx, Deepen)),
-
-                (DerivedStream::Sumtime { idx , .. }, Deepen) => {
-                    idx_stack.push((cur_idx, Reduce));
-                    idx_stack.push((*idx, Deepen));
-                },
-                (DerivedStream::Sumtime { interval_len, .. }, Reduce) => {
-                    let size = size_stack.pop_or_err()?;
-                    size_stack.push(size + (*interval_len as usize));
-                },
-                (DerivedStream::Binary { idx_lhs, idx_rhs , .. }, Deepen) => {
-                    let size = size_stack.pop_or_err()?;
-                    size_stack.push(size);
-                    size_stack.push(size);
-
-                    idx_stack.push((cur_idx, Reduce));
-                    idx_stack.push((*idx_rhs, Deepen));
-                    idx_stack.push((*idx_lhs, Deepen));
-                },
-                (DerivedStream::Binary { .. }, Reduce) => {
-                    let rhs = size_stack.pop_or_err()?;
-                    let lhs = size_stack.pop_or_err()?;
-                    size_stack.push(rhs.max(lhs));
-                },
-                (DerivedStream::Miitl { idx , .. }, Deepen) => {
-                    idx_stack.push((cur_idx, Reduce));
-                    idx_stack.push((*idx, Deepen));
-                },
-                (DerivedStream::Miitl { bound,  .. }, Reduce) => {
-                    let (_, b) = bound;
-                    let size = size_stack.pop_or_err()?;
-                    size_stack.push(size + (*b as usize));
-                },
-                _ => unreachable!()
-            }
-        }
-        size_stack.pop_or_err()
+        Expr::stream_bound_rec(stream, 0)
     }
-
+    fn stream_bound_rec(stream: &OutputStream, idx: usize) -> Result<usize, Box<dyn Error>> {
+        use DerivedStream::*;
+    
+        match &stream.derived_streams[idx] {
+            Number(_) | String(_) | Member(_) | SpawnTime | Size => Ok(0),
+    
+            Sum { idx } | Foreach { idx } | Unary { idx, .. } => Expr::stream_bound_rec(stream, *idx),
+    
+            Sumtime {
+                idx, interval_len, ..
+            } => Ok(Expr::stream_bound_rec(stream, *idx)? + *interval_len as usize),
+    
+            Binary {
+                idx_lhs, idx_rhs, ..
+            } => {
+                let lhs = Expr::stream_bound_rec(stream, *idx_lhs)?;
+                let rhs = Expr::stream_bound_rec(stream, *idx_rhs)?;
+                Ok(lhs.max(rhs))
+            }
+    
+            Miitl { idx, bound, .. } => {
+                let (_, b) = bound;
+                Ok(Expr::stream_bound_rec(stream, *idx)? + *b as usize)
+            }
+    
+            _ => unreachable!(),
+        }
+    }
 }

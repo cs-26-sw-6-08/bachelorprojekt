@@ -41,7 +41,7 @@ impl Expr {
                 (
                     streams
                         .with(DerivedStream::Miitl {
-                            bound: val.get_bound().map(|(a, b)| (a / 1000, b / 1000))?,
+                            bound: val.get_bound()?,
                             idx: key + 1,
                             miitl_type: match self {
                                 Expr::Always { .. } => MIITLType::Always,
@@ -145,7 +145,7 @@ impl Expr {
                         streams
                             .with(DerivedStream::Sumtime {
                                 idx: key + 1,
-                                interval_len: bound.get_bound_time_function().map(|b| b / 1000)?,
+                                interval_len: bound.get_bound_time_function()?,
                             })
                             .chain(new_streams),
                         new_key,

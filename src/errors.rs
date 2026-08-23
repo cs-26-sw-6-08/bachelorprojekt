@@ -36,8 +36,8 @@ pub enum Error {
     #[error("Size calculation of IoTStream was incorrect")]
     OutOfBoundsIoTStream,
 
-    #[error("Value Stack error: Not enough values in stack")]
-    ValueStackPop,
+    #[error("Array Missing value")]
+    ArrayMissingValue,
     #[error("Invalid Device Pointer Assignment")]
     DevicePointer,
     #[error("Value Stack Error: Not the correct value type")]

@@ -1,6 +1,5 @@
 use std::{
-    error::Error,
-    ops::Not,
+    error::Error, ops::{Add, Not},
 };
 
 use crate::{errors, monitor::streams::IoTDevice};
@@ -75,6 +74,22 @@ pub enum StackContent<'a> {
     String(&'a str),
 }
 
+impl<'a> From<i128> for StackContent<'a> {
+    fn from(value: i128) -> Self {
+        StackContent::Number(Some(value))
+    }
+}
+
+impl<'a> From<&'a String> for StackContent<'a> {
+    fn from(value: &'a String) -> Self {
+        StackContent::String(value.as_str())
+    }
+}
+
+
+
+
+
 impl StackContent<'_> {
     pub fn get_verdict(&self) -> Result<bool, Box<dyn Error>> {
         match self {
@@ -104,15 +119,16 @@ pub enum StepType {
     Reduce,
     ReducePartial
 }
+
 #[derive(Debug)]
-pub enum DeviceStack<'a> {
-    Element(&'a IoTDevice),
+pub enum StackElement<T> {
+    Element(T),
     LayerShift,
 }
 
-impl<'a> From<&'a IoTDevice> for DeviceStack<'a> {
+impl<'a> From<&'a IoTDevice> for StackElement<&'a IoTDevice> {
     fn from(value: &'a IoTDevice) -> Self {
-        DeviceStack::Element(value)
+        StackElement::Element(value)
     }
 }
 // impl<'a> StackContent<'a> {
@@ -312,29 +328,20 @@ impl<'a> From<&'a IoTDevice> for DeviceStack<'a> {
 //     }
 // }
 
-// impl<'a> Add for StreamOutput<'a> {
-//     type Output = StreamOutput<'a>;
+impl<'a> Add for StackContent<'a> {
+    type Output = StackContent<'a>;
 
-//     fn add(mut self, rhs: Self) -> Self::Output {
-//         let value = match (self.get_value(), rhs.get_value()) {
-//             (StackContent::Number(val1), StackContent::Number(val2)) => {
-//                 StackContent::Number(val1 + val2)
-//             }
-//             (StackContent::Verdict(v1), StackContent::Verdict(v2)) => {
-//                 StackContent::Number(*v1 as i128 * 1_000 + *v2 as i128 * 1_000)
-//             }
-//             (StackContent::Verdict(v1), StackContent::Number(v2))
-//             | (StackContent::Number(v2), StackContent::Verdict(v1)) => {
-//                 StackContent::Number(*v1 as i128 * 1_000 + *v2)
-//             }
-//             _ => unreachable!(),
-//         };
-
-//         self.value = value;
-//         self.decided = self.decided.greatest_lower_bound(&rhs.decided);
-//         self
-//     }
-// }
+    fn add(self, rhs: Self) -> Self {
+        match (self, rhs) {
+            (StackContent::Number(Some(val1)), StackContent::Number(Some(val2))) => {
+                StackContent::Number(Some(val1 + val2))
+            }
+            (StackContent::Number(None), StackContent::Number(_)) |
+                (StackContent::Number(_), StackContent::Number(None)) => StackContent::Number(None),
+            _ => unreachable!(),
+        }
+    }
+}
 
 // impl<'a> Sub for StreamOutput<'a> {
 //     type Output = StreamOutput<'a>;

@@ -27,6 +27,6 @@ impl<T> ExtVec<T> for Vec<T> {
 
     #[inline]
     fn pop_or_err(&mut self) -> Result<T, Box<dyn Error>> {
-        self.pop().ok_or(errors::Error::ValueStackPop.into())
+        self.pop().ok_or(errors::Error::ArrayMissingValue.into())
     }
 }

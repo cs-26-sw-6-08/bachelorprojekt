@@ -19,8 +19,10 @@ use colored::Colorize;
 
 /*
  *  TODO:
- *  2. Make algorithm for operation_eval
- *  3. Fix tests
+ *  1. Make algorithm for operation_eval
+ *  2. Fix tests
+ *  3. Make debug iotstream
+ *  4. Make a better environment for running the aplication
   * */
 
 type MonitorElement = Result<(usize, bool), Box<dyn Error>>;

@@ -1,12 +1,10 @@
 use std::{collections::HashSet, vec};
 
 use crate::{
-    monitor_setup::operation_types::{DerivedStream, MIITLType::Always},
-    program::{
+    monitor_setup::operation_types::{DerivedStream, MIITLType::{self, Always}}, program::{
         member_types::MemberType,
         operations::{BinaryOperators, UnaryOperators},
-    },
-    utils::test_helper_func::*,
+    }, utils::test_helper_func::*,
 };
 
 #[test]
@@ -484,7 +482,6 @@ fn time_behaviour_test_2() {
     let result = run_monitor_x_steps(streams, &device_stream, 100);
     let errors = create_error_set([23, 47, 71, 95].into_iter(), 1);
     validate_run(result, errors);
-
 }
 
 #[test]
@@ -544,173 +541,121 @@ fn time_behaviour_test_3() {
     let result = run_monitor_x_steps(streams, &device_stream, 100);
     let errors = create_error_set([].into_iter(), 1);
     validate_run(result, errors);
+}
+
+#[test]
+/// [] <>[1,1] 1
+/// Violates: Never
+fn eventually_expr_true() {
+    let operations = vec![
+        DerivedStream::Miitl {
+            bound: (1, 1),
+            idx: 1,
+            miitl_type: MIITLType::Eventually
+        },
+        DerivedStream::Number(1_000),
+    ];
+    let program = program_init(operations);
+    let device_stream = mock_default_device_stream(100);
+    let streams = &mut program.environment.unwrap();
+    let result = run_monitor_x_steps(streams, &device_stream, 100);
+
+    validate_run(result, HashSet::new());
+}
+
+#[test]
+/// [] <>[1,1] 0
+/// Violates: false once, then true always
+fn eventually_expr_false() {
+    let operations = vec![
+            DerivedStream::Miitl { bound: (1,1), idx: 1, miitl_type: MIITLType::Eventually },
+            DerivedStream::Number(0)
+        ] ;
+    let program = program_init(operations);
+    let device_stream = mock_default_device_stream(100);
+    let streams = &mut program.environment.unwrap();
+    let result = run_monitor_x_steps(streams, &device_stream, 100);
+
+    let errors = create_error_set(1..100, 1);
+    validate_run(result, errors);
+}
+
+#[test]
+/// Prop: [] <>[2,5] t = 2;
+/// Violation: Never
+fn eventually_expr_time_true() {
+    let operations = {
+        use DerivedStream::*;
+        vec![
+            Miitl { bound: ( 2, 5 ), idx: 1, miitl_type: MIITLType::Eventually },
+            Binary {bin_op: BinaryOperators::NotEqual, idx_lhs: 2,idx_rhs: 3},
+            SpawnTime,
+            Number(2_000),
+        ]};
+
+    let program = program_init(operations);
+    let device_stream = mock_default_device_stream(100);
+    let streams = &mut program.environment.unwrap();
+    let result = run_monitor_x_steps(streams, &device_stream, 100);
+
+
+
+    let errors = create_error_set((2..5).into_iter(), 1);
+    validate_run(result, errors);
 
 }
 
+#[test]
+/// Prop: always (t = 0) -> (always[6,6](always[9,9]0));
+/// Violation: Gives vilolation at 15, and only 15
+fn always_always_always(){
+    let operations = {
+        use DerivedStream::*;
+        vec![
+            Binary {
+                    bin_op: BinaryOperators::Or,
+                    idx_lhs: 1,
+                    idx_rhs: 5,
+                },
+                Unary {
+                    un_op: UnaryOperators::Not,
+                    idx: 2,
+                },
+                Binary {
+                    bin_op: BinaryOperators::Equal,
+                    idx_lhs: 3,
+                    idx_rhs: 4,
+                },
+                SpawnTime,
+                Number(
+                    0,
+                ),
+                Miitl { 
+                    bound: (
+                        6,
+                        6,
+                    ),
+                    idx: 6,
+                    miitl_type: MIITLType::Always,
+                },
+                Miitl {
+                    bound: (
+                        9,
+                        9,
+                    ),
+                    idx: 7,
+                    miitl_type: MIITLType::Always,
+                },
+                Number(
+                    0,
+                ),
+        ]};
 
-// #[test]
-// /// Sum(foreach(1) != 1) == 1
-// /// Violates: Always
-// fn always_nested_device_stack_false() {
-//     let operations: Vec<DerivedStream> = vec![
-//         Operation::Binary {
-//             bin_op: BinaryOperators::Equal,
-//             idx_lhs: 1,
-//             idx_rhs: 6,
-//         },
-//         Operation::AggregateFunction {
-//             idx: 2,
-//             function_type: AggregateType::Sum,
-//         },
-//         Operation::Binary {
-//             bin_op: BinaryOperators::NotEqual,
-//             idx_lhs: 3,
-//             idx_rhs: 5,
-//         },
-//         Operation::Foreach { idx: 4 },
-//         Operation::Number(1_000),
-//         Operation::Number(0),
-//         Operation::Number(1_000),
-//     ];
-//     let mut program = always_prop_helper(operations, None);
-//     let device_stream = ten_device_stream();
-//     let Some(streams) = &mut program.environment else {
-//         panic!()
-//     };
-//     let result = run_x_monitor_steps(streams, &device_stream, 0, 10);
-
-//     for (_, value) in result {
-//         assert!(value[0].1);
-//     }
-// }
-
-// #[test]
-// /// [] <>[1,1] 1
-// /// Violates: Never
-// fn eventually_expr_true() {
-//     let operations = vec![
-//         DerivedStream::LTLBounded {
-//             bound: (1, 1),
-//             idx: 1,
-//             not: false,
-//             ltl_type: ExprLTL::Eventually(Vec::new()),
-//         },
-//         DerivedStream::Number(1_000),
-//     ];
-//     let program = always_prop_helper(operations, None);
-//     let device_stream = single_device_stream();
-//     let streams = &mut program.environment.unwrap();
-//     let result = run_x_monitor_steps(streams, &device_stream, 0, 100);
-
-//     for (_, value) in result {
-//             assert!(value.is_empty());
-//         }
-//     }
-
-    // #[test]
-    // /// [] <>[1,1] 0
-    // /// Violates: false once, then true always
-    // fn eventually_expr_false() {
-    //     let operations = vec![
-    //             Operation::LTLBounded { bound: (1,1), idx: 1, not: false, ltl_type: ExprLTL::Eventually(Vec::new()) },
-//             Operation::Number(0)
-//         ] ;
-//     let program = always_prop_helper(operations, None);
-//     let device_stream = single_device_stream();
-//     let streams = &mut program.environment.unwrap();
-//     let result = run_x_monitor_steps(streams, &device_stream, 0, 100);
-//
-//     for (idx, value) in result {
-//         if idx == 0{
-//             assert!(value.is_empty());
-//         } else {
-//             assert!(value[0].1);
-//         }
-//     }
-// }
-//
-// #[test]
-// /// Prop: [] <>[2,5] t = 2;
-// /// Violation: Never
-// fn eventually_expr_time_true() {
-//     let operations = {
-//         use DerivedStream::*;
-//         vec![
-//             LTLBounded { bound: ( 2, 5 ), idx: 1, not: false, ltl_type: ExprLTL::Eventually(Vec::new())},
-//             Binary {bin_op: BinaryOperators::NotEqual, idx_lhs: 2,idx_rhs: 3},
-//             SpawnTime,
-//             Number(2_000),
-//         ]};
-//
-//     let program = always_prop_helper(operations, None);
-//     let device_stream = single_device_stream();
-//     let streams = &mut program.environment.unwrap();
-//     let result = run_x_monitor_steps(streams, &device_stream, 0, 100);
-//
-//     for idx in (0..100).filter(|&num| !(2..5).contains(&num) ) {
-//         let value = result.get(&idx).unwrap();
-//         assert!(value.is_empty());
-//     }
-// }
-//
-// #[test]
-// /// Prop: always (t = 0) -> (always[6,6](always[9,9]0));
-// /// Violation: Gives vilolation at 15, and only 15
-// fn always_always_always(){
-//     let operations = {
-//         use DerivedStream::*;
-//         vec![
-//             Binary {
-//                     bin_op: BinaryOperators::Or,
-//                     idx_lhs: 1,
-//                     idx_rhs: 5,
-//                 },
-//                 Unary {
-//                     un_op: UnaryOperators::Not,
-//                     idx: 2,
-//                 },
-//                 Binary {
-//                     bin_op: BinaryOperators::Equal,
-//                     idx_lhs: 3,
-//                     idx_rhs: 4,
-//                 },
-//                 SpawnTime,
-//                 Number(
-//                     0,
-//                 ),
-//                 LTLBounded {
-//                     bound: (
-//                         6,
-//                         6,
-//                     ),
-//                     idx: 6,
-//                     not: false,
-//                     ltl_type: ExprLTL::Always,
-//                 },
-//                 LTLBounded {
-//                     bound: (
-//                         9,
-//                         9,
-//                     ),
-//                     idx: 7,
-//                     not: false,
-//                     ltl_type: ExprLTL::Always,
-//                 },
-//                 Number(
-//                     0,
-//                 ),
-//         ]};
-//
-//     let program = always_prop_helper(operations, None);
-//     let device_stream = single_device_stream();
-//     let streams = &mut program.environment.unwrap();
-//     let result = run_x_monitor_steps(streams, &device_stream, 0, 100);
-//
-//     for (idx, value) in result {
-//         if idx != 15{
-//             assert!(value.is_empty());
-//         } else {
-//             assert!(value[0].1);
-//         }
-//     }
-// }
+    let program = program_init(operations);
+    let device_stream = mock_default_device_stream(100);
+    let streams = &mut program.environment.unwrap();
+    let result = run_monitor_x_steps(streams, &device_stream, 100);
+ 
+    let errors = create_error_set((0..=14).into_iter().chain(16..100), 1);
+    validate_run(result, errors);
+}

@@ -41,7 +41,11 @@ impl Expr {
                         .with(DerivedStream::Miitl {
                             bound: val.get_bound().map(|(a, b)| (a / 1000, b / 1000))?,
                             idx: key + 1,
-                            miitl_type: MIITLType::Eventually,
+                            miitl_type: match self {
+                                Expr::Always { .. } => MIITLType::Always,
+                                Expr::Eventually { .. } => MIITLType::Eventually,
+                                _ => unreachable!()
+                            },
                         })
                         .chain(new_streams),
                     new_key,
@@ -156,14 +160,16 @@ impl Expr {
                     let Some(bound) = bound else {
                         return Err(errors::Error::InvalidFunctionIntervalExpr.into());
                     };
+                    let bound = bound.get_bound_time_function().map(|b| b / 1000)?;
                     (
                         streams
                             .with(DerivedStream::Binary { bin_op: Divide, idx_lhs: key + 1, idx_rhs: new_key })
                             .with(DerivedStream::Sumtime {
                                 idx: key + 2,
-                                interval_len: bound.get_bound_time_function().map(|b| b / 1000)?,
+                                interval_len: bound,
                             })
-                            .chain(new_streams),
+                            .chain(new_streams)
+                            .with(DerivedStream::Number(bound + 1)),
                         new_key + 1,
                     )
                 }

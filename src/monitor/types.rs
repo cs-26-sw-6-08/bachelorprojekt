@@ -102,6 +102,7 @@ impl StackContent<'_> {
 pub enum StepType {
     Deepen,
     Reduce,
+    ReducePartial
 }
 #[derive(Debug)]
 pub enum DeviceStack<'a> {

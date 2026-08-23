@@ -7,9 +7,10 @@ pub mod operation_eval;
 mod streams_test;
 #[cfg(test)]
 mod operation_eval_test;
+mod instrumentation;
 
 use std::error::Error;
-use crate::{errors, monitor::streams::{IoTStream, OutputStream}, program::Program};
+use crate::{errors, monitor::{instrumentation::Instrumentation, streams::{IoTStream, OutputStream}}, program::Program};
 use tokio::time::{Duration, interval};
 use std::time::Instant;
 
@@ -18,17 +19,14 @@ use colored::Colorize;
 
 /*
  *  TODO:
- *  1. Make algorithm for calculating size of IoTStream
  *  2. Make algorithm for operation_eval
  *  3. Fix tests
- *  4. Integrate instrumentation
- *  5. 
   * */
 
 type MonitorElement = Result<(usize, bool), Box<dyn Error>>;
 
 impl Program {
-    pub async fn monitor(&mut self, time_interval: i128, speed: bool) -> Result<(), Box<dyn Error>> {
+    pub async fn monitor(&mut self, time_interval: i128, speed: bool, instrumentation: Instrumentation) -> Result<(), Box<dyn Error>> {
         
         let Some(streams) = &mut self.environment else { return Err(errors::Error::FieldNotPresent.into()); };
         let Some(size) = self.iotstream_len else { return Err(errors::Error::FieldNotPresent.into()); };
@@ -58,15 +56,12 @@ impl Program {
             println!("--- Interval {:<4}", format!("{}",t).blue().bold());
 
             //Todo: This should be fixed
-            if cfg!(debug_assertions) {     
-                // devices.push_at(instrumentation.fetch_device_states().await, cur_idx);
-                devices.push_at(todo!(), cur_idx)?;
+            if !cfg!(debug_assertions) {     
+                devices.push_at(instrumentation.fetch_device_states().await, cur_idx)?;
             } else {
                 devices.push_at(todo!(), cur_idx)?;
             }
             cur_idx = (cur_idx + 1) % size;
-            
-            
 
             async {
                 for el in Self::monitor_logic(streams, &t, &devices) {

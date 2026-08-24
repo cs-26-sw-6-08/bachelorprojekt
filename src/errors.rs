@@ -45,7 +45,9 @@ pub enum Error {
     #[error("Illegal operation during evaluation")]
     IllegalOperation,
     #[error("The environment/device_len has not been set for the program")]
-    FieldNotPresent
+    FieldNotPresent,
+     #[error("Value Stack Error: Expected a stack Element<T> got LayerShift")]
+    WrongEnumType,
 }
 
 impl PartialEq for Error {

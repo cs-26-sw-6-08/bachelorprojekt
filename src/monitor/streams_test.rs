@@ -242,7 +242,7 @@ fn always_mul_check() {
 #[test]
 /// Sum(power) / 2 == 2.5
 /// Violates: Never
-fn always_div_check() {
+fn always_div_check() { // TODO: UPdate the mock data here
     let operations: Vec<DerivedStream> = vec![
         DerivedStream::Binary {
             bin_op: BinaryOperators::Equal,
@@ -296,6 +296,93 @@ fn always_minus_check() {
         panic!()
     };
     let result = run_monitor_x_steps(streams, &device_stream, 5);
+
+    validate_run(result, HashSet::new());
+}
+
+#[test]
+/// [] 2 * 4 == 8
+/// violates: Never
+fn always_times_check() {
+    let operations: Vec<DerivedStream> = vec![
+        DerivedStream::Binary {
+            bin_op: BinaryOperators::Equal,
+            idx_lhs: 1,
+            idx_rhs: 4,
+        },
+        DerivedStream::Binary {
+            bin_op: BinaryOperators::Times,
+            idx_lhs: 2,
+            idx_rhs: 3,
+        },
+        DerivedStream::Number(2_000),
+        DerivedStream::Number(4_000),
+        DerivedStream::Number(8_000),
+    ];
+    let mut program = program_init(operations);
+
+    let device_stream = mock_default_device_stream(5);
+
+    let Some(streams) = &mut program.environment else {
+        panic!()
+    };
+    let result = run_monitor_x_steps(streams, &device_stream, 5);
+
+    validate_run(result, HashSet::new());
+}
+
+#[test]
+/// [] 8 / 2 == 4
+/// violates: Never
+fn always_divsion_check() {
+    let operations: Vec<DerivedStream> = vec![
+        DerivedStream::Binary {
+            bin_op: BinaryOperators::Equal,
+            idx_lhs: 1,
+            idx_rhs: 4,
+        },
+        DerivedStream::Binary {
+            bin_op: BinaryOperators::Divide,
+            idx_lhs: 2,
+            idx_rhs: 3,
+        },
+        DerivedStream::Number(8_000),
+        DerivedStream::Number(2_000),
+        DerivedStream::Number(4_000),
+    ];
+    let mut program = program_init(operations);
+
+    let device_stream = mock_default_device_stream(5);
+
+    let Some(streams) = &mut program.environment else {
+        panic!()
+    };
+    let result = run_monitor_x_steps(streams, &device_stream, 1);
+
+    validate_run(result, HashSet::new());
+}
+
+#[test]
+/// [] 2 < 4;
+/// violates: Never
+fn always_less_check() {
+    let operations: Vec<DerivedStream> = vec![
+        DerivedStream::Binary {
+            bin_op: BinaryOperators::Less,
+            idx_lhs: 1,
+            idx_rhs: 2,
+        },
+        DerivedStream::Number(2_000),
+        DerivedStream::Number(4_000),
+    ];
+    let mut program = program_init(operations);
+
+    let device_stream = mock_default_device_stream(5);
+
+    let Some(streams) = &mut program.environment else {
+        panic!()
+    };
+    let result = run_monitor_x_steps(streams, &device_stream, 1);
 
     validate_run(result, HashSet::new());
 }

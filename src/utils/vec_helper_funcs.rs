@@ -8,6 +8,8 @@ pub trait ExtVec<T> {
     fn with(self, item: T) -> Self;
     fn chain<I: IntoIterator<Item = T>>(self, iter: I) -> Self; 
     fn pop_or_err(&mut self) -> Result<T, Box<dyn Error>>;
+    fn last_or_err(&mut self) -> Result<&T, Box<dyn Error>>;
+
 }
 
 impl<T> ExtVec<T> for Vec<T> {
@@ -28,5 +30,10 @@ impl<T> ExtVec<T> for Vec<T> {
     #[inline]
     fn pop_or_err(&mut self) -> Result<T, Box<dyn Error>> {
         self.pop().ok_or(errors::Error::ArrayMissingValue.into())
+    }
+    
+    #[inline]
+    fn last_or_err(&mut self) -> Result<&T, Box<dyn Error>> {
+        self.last().ok_or(errors::Error::ArrayMissingValue.into())
     }
 }

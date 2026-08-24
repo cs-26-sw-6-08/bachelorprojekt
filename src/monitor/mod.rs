@@ -20,6 +20,7 @@ use colored::Colorize;
 /*
  *  TODO:
  *  1. Make algorithm for operation_eval
+ *      1.1. Think about the indexing inside of the operation_eval of S_IoT
  *  2. Fix tests
  *  3. Make debug iotstream
  *  4. Make a better environment for running the aplication

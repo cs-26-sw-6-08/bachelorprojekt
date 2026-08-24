@@ -95,13 +95,13 @@ impl<'a> From<&'a String> for StreamValue<'a> {
 }
 
 impl StreamValue<'_> {
-    pub fn get_verdict(&self) -> Result<bool, Box<dyn Error>> {
+    pub fn get_verdict(&self) -> Result<Option<bool>, Box<dyn Error>> {
         match self {
             StreamValue::Number(v) => {
                 if let Some(v) = v {
-                    Ok(*v != 0)
+                    Ok(Some(*v != 0))
                 } else {
-                    Ok(false)
+                    Ok(None)
                 }
             }
             _ => Err(errors::Error::ValueStackVal.into()),
@@ -158,7 +158,8 @@ impl<'a> StreamValue<'a> {
             BinaryOperators::Times => self.mul(rhs),
             BinaryOperators::Divide => self.div(rhs),
             BinaryOperators::Mod => self.modulo(rhs),
-            BinaryOperators::Or => self.or(rhs),
+            BinaryOperators::Or => self.or(&rhs),
+            BinaryOperators::And => self.and(&rhs),
             _ => unreachable!(),
         }
     }
@@ -208,24 +209,27 @@ impl<'a> StreamValue<'a> {
         }
     }
 
-    pub fn and(self, rhs: Self) -> Self {
+    //todo: figure out if this should be the logical and designed in the paper
+    pub fn and(&self, rhs: &Self) -> Self {
         match (self, rhs) {
             (StreamValue::Number(Some(val1)), StreamValue::Number(Some(val2))) => {
-                StreamValue::Number(Some(((val1 != 0) && (val2 != 0)) as i128))
+                StreamValue::Number(Some(((*val1 != 0) && (*val2 != 0)) as i128))
             }
-            (StreamValue::Number(None), StreamValue::Number(_))
-            | (StreamValue::Number(_), StreamValue::Number(None)) => StreamValue::Number(None),
+            (StreamValue::Number(None), StreamValue::Number(Some(v))) | 
+            (StreamValue::Number(Some(v)), StreamValue::Number(None)) => StreamValue::Number(if *v != 0 { None } else { Some(false as i128) }),
+                (StreamValue::Number(None), StreamValue::Number(None)) => StreamValue::Number(None),
             _ => unreachable!(),
         }
     }
 
-    pub fn or(self, rhs: Self) -> Self {
+    pub fn or(&self, rhs: &Self) -> Self {
         match (self, rhs) {
             (StreamValue::Number(Some(val1)), StreamValue::Number(Some(val2))) => {
-                StreamValue::Number(Some(((val1 != 0) || (val2 != 0)) as i128))
+                StreamValue::Number(Some(((*val1 != 0) || (*val2 != 0)) as i128))
             }
-            (StreamValue::Number(None), StreamValue::Number(_))
-            | (StreamValue::Number(_), StreamValue::Number(None)) => StreamValue::Number(None),
+            (StreamValue::Number(None), StreamValue::Number(Some(v))) | 
+            (StreamValue::Number(Some(v)), StreamValue::Number(None)) => StreamValue::Number(if *v != 0 { Some(true as i128) } else { None }),
+                (StreamValue::Number(None), StreamValue::Number(None)) => StreamValue::Number(None),
             _ => unreachable!(),
         }
     }

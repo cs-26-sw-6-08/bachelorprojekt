@@ -1,7 +1,15 @@
 use crate::{
-    errors, monitor::{
-        streams::{IoTDevice, IoTStream, OutputStream}, types::{StackElement, StepType, StreamValue, Verdict},
-    }, monitor_setup::operation_types::DerivedStream, utils::vec_helper_funcs::ExtVec,
+    errors,
+    monitor::{
+        streams::{IoTDevice, IoTStream, OutputStream},
+        types::{
+            StackElement, StepType,
+            StreamValue::{self, Number},
+            Verdict,
+        },
+    },
+    monitor_setup::operation_types::{DerivedStream, MIITLType},
+    utils::vec_helper_funcs::ExtVec,
 };
 use std::error::Error;
 
@@ -95,7 +103,7 @@ pub(crate) fn eval_operations(
                     }
                 }
             }
-            (DerivedStream::Sumtime { interval_len, idx }, Deepen) => {
+            (DerivedStream::Sumtime { interval_len, .. }, Deepen) => {
                 //let t_offset = *time_stack.last_or_err()?.unpack_element()?;
                 if *t_current >= t_offset + *interval_len {
                     value_stack.push(StreamValue::Number(None));
@@ -104,17 +112,13 @@ pub(crate) fn eval_operations(
 
                 time_stack.push(Element(t_offset));
                 time_stack.push(LayerShift);
-                time_stack.extend(
-                    (t_offset..t_offset + *interval_len)
-                        .into_iter()
-                        .map(Element),
-                );
+                time_stack.extend((t_offset..t_offset + *interval_len).map(Element));
 
                 worklist_stack.push((cur_idx, Reduce));
                 value_stack.push(0.into());
                 value_stack.push(0.into());
             }
-            (DerivedStream::Sumtime { interval_len, idx }, Reduce) => {
+            (DerivedStream::Sumtime { idx, .. }, Reduce) => {
                 let res = value_stack.pop_or_err()? + value_stack.pop_or_err()?;
                 value_stack.push(res);
 
@@ -140,8 +144,8 @@ pub(crate) fn eval_operations(
             (DerivedStream::Foreach { idx }, Reduce) => {
                 //Violation didn't occur and not all devices have been looked at
                 if value_stack
-                        .last()
-                        .is_some_and(|v| matches!(v.get_verdict(), Ok(true)))
+                    .last()
+                    .is_some_and(|v| matches!(v.get_verdict(), Ok(Some(true))))
                     && device_stack
                         .last()
                         .is_some_and(|v| matches!(v, StackElement::Element(_)))
@@ -161,12 +165,7 @@ pub(crate) fn eval_operations(
             (DerivedStream::Binary { idx_lhs, .. }, Deepen) => {
                 worklist_stack.extend([(cur_idx, ReducePartial), (*idx_lhs, Deepen)]);
             }
-            (
-                DerivedStream::Binary {
-                    idx_rhs, ..
-                },
-                ReducePartial,
-            ) => {
+            (DerivedStream::Binary { idx_rhs, .. }, ReducePartial) => {
                 worklist_stack.extend([(cur_idx, Reduce), (*idx_rhs, Deepen)]);
             }
             (DerivedStream::Binary { bin_op, .. }, Reduce) => {
@@ -184,29 +183,60 @@ pub(crate) fn eval_operations(
 
             (
                 DerivedStream::Miitl {
-                    miitl_type,
-                    bound,
-                    idx,
+                    bound, miitl_type, ..
                 },
                 Deepen,
-            ) => todo!(),
+            ) => {
+                let (a, b) = bound;
+                value_stack.extend(if *t_current < t_offset + *b {
+                    [Number(None), Number(None)]
+                } else if matches!(miitl_type, MIITLType::Always) {
+                    [Number(Some(true as i128)), Number(Some(true as i128))]
+                } else {
+                    /*type is eventually*/
+                    [Number(Some(false as i128)), Number(Some(false as i128))]
+                });
+
+                let start = t_offset + *a;
+                let end = *t_current.min(&(t_offset + *b));
+
+                time_stack.push(Element(t_offset));
+                time_stack.push(LayerShift);
+                time_stack.extend((start..end).rev().map(Element));
+
+                worklist_stack.push((cur_idx, Reduce))
+            }
             (
                 DerivedStream::Miitl {
-                    miitl_type,
-                    bound,
-                    idx,
+                    miitl_type, idx, ..
                 },
                 Reduce,
-            ) => todo!(),
-            (
-                DerivedStream::Miitl {
-                    miitl_type,
-                    bound,
-                    idx,
-                },
-                ReducePartial,
-            ) => todo!(),
+            ) => {
+                //Fix logic here such that the values on the stack are "added" together e.g.
+                //true and und -> und, false and und -> false
+                let val = value_stack.pop_or_err()?;
+                let acc = value_stack.pop_or_err()?;
 
+                let (should_stop, res) = match miitl_type {
+                    MIITLType::Always => {
+                        let res = acc.and(&val);
+                        (matches!(res.get_verdict(), Ok(Some(false))), res)
+                    }
+                    MIITLType::Eventually => {
+                        let res = acc.or(&val);
+                        (matches!(res.get_verdict(), Ok(Some(true))), res)
+                    }
+                };
+                value_stack.push(res);
+
+                if should_stop || time_stack.last().is_some_and(|v| matches!(v, LayerShift)) {
+                    while let Some(StackElement::Element(_)) = device_stack.pop() {}
+                    t_offset = *time_stack.pop_or_err()?.unpack_element()?;
+                } else {
+                    t_offset = *time_stack.pop_or_err()?.unpack_element()?;
+                    worklist_stack.extend([(cur_idx, Reduce), (*idx, Deepen)]);
+                }
+            }
             _ => unreachable!(),
         }
     }

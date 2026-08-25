@@ -59,8 +59,7 @@ impl Program {
             } else {
                 instrumentation.fetch_device_states().await
             };
-
-            devices.push_at(fetched_devices, cur_idx)?;
+            devices.push_at(fetched_devices, cur_idx);
             cur_idx = (cur_idx + 1) % size;
 
             async {

@@ -88,13 +88,12 @@ impl IoTStream {
         self.0
     }
 
-    pub fn push_at(&mut self, devices: Vec<IoTDevice>, i: usize) -> Result<(), errors::Error> {
+    pub fn push_at(&mut self, devices: Vec<IoTDevice>, i: usize) {
         if self.0.len() < self.1 {
             self.0.push(devices);
         } else {
             self.0[i] = devices;
         }
-        Ok(())
     }
 }
 

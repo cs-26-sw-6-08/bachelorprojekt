@@ -41,7 +41,9 @@ impl Program {
                 .map(Expr::stream_max_bound)
                 .collect::<Result<Vec<_>, Box<dyn Error>>>()?
                 .into_iter()
-                .max();
+                .max()
+                //If the value is 0, then it should be set to 1
+                .map(|v| v.max(1));
         }
         Ok(())
     }

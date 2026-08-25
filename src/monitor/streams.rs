@@ -55,11 +55,12 @@ pub struct IoTDevice {
 
 impl From<(String, i128)> for IoTDevice {
     fn from(value: (String, i128)) -> Self {
-        let (mut name, power) = value;
-        name = name.to_lowercase();
+        let (name, power) = value;
+        let name = name.to_lowercase();
         Self { name, power }
     }
 }
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct IoTStream(Vec<Vec<IoTDevice>>, usize);
 impl IoTStream {
@@ -88,10 +89,11 @@ impl IoTStream {
     }
 
     pub fn push_at(&mut self, devices: Vec<IoTDevice>, i: usize) -> Result<(), errors::Error> {
-        self.0
-            .get_mut(i)
-            .map(|to_set| *to_set = devices)
-            .ok_or(errors::Error::OutOfBoundsIoTStream)?;
+        if self.0.len() < self.1 {
+            self.0.push(devices);
+        } else {
+            self.0[i] = devices;
+        }
         Ok(())
     }
 }

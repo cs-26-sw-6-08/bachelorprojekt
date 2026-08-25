@@ -67,6 +67,17 @@ impl Instrumentation {
             })
             .collect()
     }
+
+    pub fn debug_fetch_devices(&self, i: usize) -> Vec<IoTDevice> {
+        let array = [
+            [
+                ("christian".to_string(), 0).into()
+            ]
+        ];
+        let len = array.len();
+        array[i % len].to_vec()
+    }
+
 }
 
 #[derive(Debug, Serialize, Deserialize)]

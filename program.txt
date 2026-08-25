@@ -1,1 +1,1 @@
-always counttime[5s](power * (name=television) > 6W) <= 5s;
+always 1;

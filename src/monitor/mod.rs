@@ -1,13 +1,12 @@
 pub mod streams;
 pub mod types;
 pub mod operation_eval;
-// pub mod instrumentation;
+pub mod instrumentation;
 
 #[cfg(test)]
 mod streams_test;
 #[cfg(test)]
 mod operation_eval_test;
-mod instrumentation;
 
 use std::error::Error;
 use crate::{errors, monitor::{instrumentation::Instrumentation, streams::{IoTStream, OutputStream}}, program::Program};
@@ -19,9 +18,6 @@ use colored::Colorize;
 
 /*
  *  TODO:
- *  1. Make algorithm for operation_eval
- *      1.1. Think about the indexing inside of the operation_eval of S_IoT
- *  2. Fix tests
  *  3. Make debug iotstream
  *  4. Make a better environment for running the aplication
   * */
@@ -29,7 +25,7 @@ use colored::Colorize;
 type MonitorElement = Result<(usize, bool), Box<dyn Error>>;
 
 impl Program {
-    pub async fn monitor(&mut self, time_interval: i128, speed: bool, instrumentation: Instrumentation) -> Result<(), Box<dyn Error>> {
+    pub async fn monitor(&mut self, instrumentation: Instrumentation, time_interval: i128, speed: bool) -> Result<(), Box<dyn Error>> {
         
         let Some(streams) = &mut self.environment else { return Err(errors::Error::FieldNotPresent.into()); };
         let Some(size) = self.iotstream_len else { return Err(errors::Error::FieldNotPresent.into()); };
@@ -58,12 +54,13 @@ impl Program {
             #[cfg(debug_assertions)]
             println!("--- Interval {:<4}", format!("{}",t).blue().bold());
 
-            //Todo: This should be fixed
-            if !cfg!(debug_assertions) {     
-                devices.push_at(instrumentation.fetch_device_states().await, cur_idx)?;
+            let fetched_devices = if cfg!(debug_assertions) {
+                instrumentation.debug_fetch_devices(cur_idx)
             } else {
-                devices.push_at(todo!(), cur_idx)?;
-            }
+                instrumentation.fetch_device_states().await
+            };
+
+            devices.push_at(fetched_devices, cur_idx)?;
             cur_idx = (cur_idx + 1) % size;
 
             async {

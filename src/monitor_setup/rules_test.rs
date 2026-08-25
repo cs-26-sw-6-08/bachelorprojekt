@@ -341,3 +341,16 @@ fn iot_stream_len_2() {
 
     assert_eq!(Expr::stream_max_bound(&large_expr).unwrap(), 400)
 }
+
+#[test]
+fn iot_stream_len_3() {
+    //[] [][5,200] 1 | <>[5,50] 1 | sumtime[201] 1
+    let num = custom_number_expr(1);
+
+
+    let large_expr: OutputStream = num.compile_expression() 
+        .unwrap()
+        .into();
+
+    assert_eq!(Expr::stream_max_bound(&large_expr).unwrap(), 0)
+}

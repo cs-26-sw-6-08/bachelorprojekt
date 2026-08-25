@@ -61,8 +61,6 @@ async fn main() {
         return error_print(format!("{}",err));
     }
 
-    println!("{:#?}", program.iotstream_len);
-
     if let Err(err) = program.monitor(instrumentation, 1_000, false).await {
         return error_print(format!("{}",err));
     }

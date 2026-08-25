@@ -213,11 +213,17 @@ impl<'a> StreamValue<'a> {
     pub fn and(&self, rhs: &Self) -> Self {
         match (self, rhs) {
             (StreamValue::Number(Some(val1)), StreamValue::Number(Some(val2))) => {
-                StreamValue::Number(Some(((*val1 != 0) && (*val2 != 0)) as i128))
+                StreamValue::Number(Some(((*val1 != 0) && (*val2 != 0)) as i128 * 1_000))
             }
-            (StreamValue::Number(None), StreamValue::Number(Some(v))) | 
-            (StreamValue::Number(Some(v)), StreamValue::Number(None)) => StreamValue::Number(if *v != 0 { None } else { Some(false as i128) }),
-                (StreamValue::Number(None), StreamValue::Number(None)) => StreamValue::Number(None),
+            (StreamValue::Number(None), StreamValue::Number(Some(v)))
+            | (StreamValue::Number(Some(v)), StreamValue::Number(None)) => {
+                StreamValue::Number(if *v != 0 {
+                    None
+                } else {
+                    Some(false as i128 * 1_000)
+                })
+            }
+            (StreamValue::Number(None), StreamValue::Number(None)) => StreamValue::Number(None),
             _ => unreachable!(),
         }
     }
@@ -225,11 +231,17 @@ impl<'a> StreamValue<'a> {
     pub fn or(&self, rhs: &Self) -> Self {
         match (self, rhs) {
             (StreamValue::Number(Some(val1)), StreamValue::Number(Some(val2))) => {
-                StreamValue::Number(Some(((*val1 != 0) || (*val2 != 0)) as i128))
+                StreamValue::Number(Some(((*val1 != 0) || (*val2 != 0)) as i128 * 1_000))
             }
-            (StreamValue::Number(None), StreamValue::Number(Some(v))) | 
-            (StreamValue::Number(Some(v)), StreamValue::Number(None)) => StreamValue::Number(if *v != 0 { Some(true as i128) } else { None }),
-                (StreamValue::Number(None), StreamValue::Number(None)) => StreamValue::Number(None),
+            (StreamValue::Number(None), StreamValue::Number(Some(v)))
+            | (StreamValue::Number(Some(v)), StreamValue::Number(None)) => {
+                StreamValue::Number(if *v != 0 {
+                    Some(true as i128 * 1_000)
+                } else {
+                    None
+                })
+            }
+            (StreamValue::Number(None), StreamValue::Number(None)) => StreamValue::Number(None),
             _ => unreachable!(),
         }
     }

@@ -70,7 +70,9 @@ pub(crate) fn eval_operations(
                 value_stack.push(StreamValue::Number(Some(t_offset)));
             }
             (DerivedStream::Size, Deepen) => value_stack.push(StreamValue::Number(Some(
-                devices.get_devices(*t_spawn as usize).len() as i128,
+                devices
+                    .get_devices(*time_stack.last_or_err()?.unpack_element()? as usize)
+                    .len() as i128,
             ))),
 
             (DerivedStream::Sum { .. }, Deepen) => {
@@ -202,7 +204,7 @@ pub(crate) fn eval_operations(
 
                 time_stack.push(Element(t_offset));
                 time_stack.push(LayerShift);
-                time_stack.extend((start..end).rev().map(Element));
+                time_stack.extend((start..=end).rev().map(Element));
 
                 worklist_stack.push((cur_idx, Reduce))
             }
@@ -230,7 +232,7 @@ pub(crate) fn eval_operations(
                 value_stack.push(res);
 
                 if should_stop || time_stack.last().is_some_and(|v| matches!(v, LayerShift)) {
-                    while let Some(StackElement::Element(_)) = device_stack.pop() {}
+                    while let Some(StackElement::Element(_)) = time_stack.pop() {}
                     t_offset = *time_stack.pop_or_err()?.unpack_element()?;
                 } else {
                     t_offset = *time_stack.pop_or_err()?.unpack_element()?;

@@ -5,16 +5,16 @@ use crate::{
         member_types::MemberType, operations::{
             BinaryOperators::{self, Divide}, UnaryOperators,
         },
-    }, utils::test_helper_func::mock_default_device_stream,
+    }, utils::test_helper_func::{mock_default_device_stream, mock_specific_device_amount_stream},
 };
 
 #[test]
 fn test_constants() {
-    let mut operations = [DerivedStream::Number(4000), DerivedStream::SpawnTime];
+    let mut operations = [DerivedStream::Number(4), DerivedStream::SpawnTime];
     let (spawn_t, cur_t) = (0, 1);
     let devices = mock_default_device_stream(1).into();
     assert_eq!(
-        Some(4000),
+        Some(4),
         eval_operations(&mut operations[0..1], &devices, &spawn_t, &cur_t).unwrap()
     );
     assert_eq!(
@@ -22,7 +22,7 @@ fn test_constants() {
         eval_operations(&mut operations[1..2], &devices, &spawn_t, &cur_t).unwrap()
     );
     assert_eq!(
-        Some(1000),
+        Some(1),
         eval_operations(&mut operations[1..2], &devices, &1, &cur_t).unwrap()
     )
 }
@@ -39,7 +39,7 @@ fn aggregate_functions() {
             idx_lhs: 1,
             idx_rhs: 3,
         },
-        DerivedStream::Sum { idx: 0 },
+        DerivedStream::Sum { idx: 2 },
         DerivedStream::Member(MemberType::Power),
         DerivedStream::Size,
     ];
@@ -54,9 +54,9 @@ fn aggregate_functions() {
         DerivedStream::Number(10),
     ];
     let (spawn_t, cur_t) = (0, 1);
-    let devices: IoTStream = mock_default_device_stream(3).into();
+    let devices: IoTStream = mock_default_device_stream(3);
     let devices_power_all_10: IoTStream = mock_default_device_stream(3)
-        .get_devices_own(0)
+        .get_devices_own(1)
         .into_iter()
         .map(|mut device| {
             device.power = 10;
@@ -66,21 +66,32 @@ fn aggregate_functions() {
         .into();
 
     assert_eq!(
-        Some(30),
-        eval_operations(&mut sum, &devices, &spawn_t, &cur_t).unwrap()
+        eval_operations(&mut sum, &devices_power_all_10, &spawn_t, &cur_t).unwrap(),
+        Some(30)
     );
     assert_eq!(
-        Some(20),
+        Some(10),
         eval_operations(
             &mut sum,
-            &mock_default_device_stream(2).into(),
+            &mock_specific_device_amount_stream(2, 3),
             &spawn_t,
             &cur_t
         )
         .unwrap()
     );
     assert_eq!(
-        Some(10),
+        Some(20),
+        eval_operations(
+            &mut sum,
+            &mock_specific_device_amount_stream(4, 3),
+            &spawn_t,
+            &cur_t
+        )
+        .unwrap()
+    );
+    // (5 + 1 +  3) / 3 = 3
+    assert_eq!(
+        Some(3),
         eval_operations(&mut avg, &devices, &spawn_t, &cur_t).unwrap()
     );
     assert_eq!(
@@ -270,7 +281,7 @@ fn check_undecided_operations() {
         ]
     };
     let expected_results = [
-        None, None, None, None, None, None, None, None, None, None, None,
+        None, None, None, None, None, None, None, None, None, None, Some(1_000),
     ];
     for (op, expected_val) in bin_ops.into_iter().zip(expected_results) {
         let mut operations = [
@@ -282,7 +293,7 @@ fn check_undecided_operations() {
             DerivedStream::Number(10_000),
             DerivedStream::Miitl {
                 miitl_type: Eventually,
-                bound: (0, 1000),
+                bound: (0, 1),
                 idx: 3,
             },
             DerivedStream::Number(0),
@@ -300,7 +311,7 @@ fn check_undecided_operations() {
         },
         DerivedStream::Miitl {
             miitl_type: Eventually,
-            bound: (0, 1000),
+            bound: (0, 1),
             idx: 2,
         },
         DerivedStream::Number(0),
@@ -375,15 +386,15 @@ fn binary_operations() {
     let expected_results = [
         Some(0),
         Some(0),
-        Some(1),
+        Some(1_000),
         Some(0),
-        Some(1),
-        Some(1),
+        Some(1_000),
+        Some(1_000),
         Some(12_000),
         Some(8_000),
         Some(20_000),
         Some(0),
-        Some(1),
+        Some(1_000),
     ];
     for (op, expected_val) in bin_ops.into_iter().zip(expected_results) {
         let mut operations = [
@@ -395,6 +406,7 @@ fn binary_operations() {
             DerivedStream::Number(10_000),
             DerivedStream::Number(2_000),
         ];
+        println!("{op:#?}: exp: {expected_val:#?}, {:#?}", eval_operations(&mut operations, &devices, &0, &0).unwrap());
         assert_eq!(
             expected_val,
             eval_operations(&mut operations, &devices, &0, &0).unwrap()

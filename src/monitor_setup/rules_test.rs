@@ -304,14 +304,14 @@ fn iot_stream_len() {
     //[] [][5,200] 1 | <>[5,50] 1 | sumtime[201] 1
     let num = custom_number_expr(1);
     let fst_always = always_interval_expr(
-        interval_expr(custom_number_expr(5), custom_number_expr(200)),
+        interval_expr(custom_number_expr(5_000), custom_number_expr(200_000)),
         num.clone(),
     );
     let snd_eventually = eventually_interval_expr(
-        interval_expr(custom_number_expr(5), custom_number_expr(50)),
+        interval_expr(custom_number_expr(5_000), custom_number_expr(50_000)),
         num.clone(),
     );
-    let trd_st = function_expr(FunctionType::Sumtime, num, Some(custom_number_expr(201)));
+    let trd_st = function_expr(FunctionType::Sumtime, num, Some(custom_number_expr(201_000)));
 
     let large_expr: OutputStream = binary_expr(fst_always, binary_expr(snd_eventually, trd_st, Or), Or)
         .compile_expression()
@@ -326,11 +326,11 @@ fn iot_stream_len_2() {
     //[] [][5,200] 1 | <>[5,50] 1 | sumtime[201] 1
     let num = custom_number_expr(1);
     let fst_always = always_interval_expr(
-        interval_expr(custom_number_expr(5), custom_number_expr(200)),
+        interval_expr(custom_number_expr(5_000), custom_number_expr(200_000)),
         num.clone(),
     );
     let snd_always = always_interval_expr(
-        interval_expr(custom_number_expr(5), custom_number_expr(200)),
+        interval_expr(custom_number_expr(5_000), custom_number_expr(200_000)),
         fst_always,
     );
 

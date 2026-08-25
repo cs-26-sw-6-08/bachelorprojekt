@@ -19,8 +19,8 @@ use crate::program::Program;
 #[tokio::main]
 async fn main() {
     dotenv().ok();
-    let base_url = std::env::var("BASE_URL").expect("BASE_URL not defined in .env");
-    let token = std::env::var("TOKEN").expect("TOKEN not defined in .env");
+    // let base_url = std::env::var("BASE_URL").expect("BASE_URL not defined in .env");
+    // let token = std::env::var("TOKEN").expect("TOKEN not defined in .env");
 
     // let instrumentation = match Instrumentation::new(&base_url, &token) {
     //     Ok(instrumentation) => instrumentation,
@@ -56,6 +56,8 @@ async fn main() {
     if let Err(err) = program.compile_properties() {
         return error_print(format!("{}",err));
     }
+
+    println!("{:#?}", program.environment);
     
     // if let Err(err) = program.monitor(instrumentation, 1_000, false).await {
     //     return error_print(format!("{}",err));

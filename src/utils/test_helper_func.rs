@@ -23,9 +23,9 @@ type Violations = Vec<Vec<bool>>;
 pub fn mock_default_device_stream(repeats: usize) -> IoTStream {
     mock_device_stream(
         vec![
-            ("Roomba".into(), 5_000).into(),
-            ("Light".into(), 1_000).into(),
-            ("Fridge".into(), 3_000).into(),
+            ("Roomba".into(), 5).into(),
+            ("Light".into(), 1).into(),
+            ("Fridge".into(), 3).into(),
         ],
         repeats,
     )
@@ -33,7 +33,7 @@ pub fn mock_default_device_stream(repeats: usize) -> IoTStream {
 
 pub fn mock_specific_device_amount_stream(amt: usize, repeats: usize) -> IoTStream {
     mock_device_stream(
-        vec![("Roomba".into(), 5_000).into()]
+        vec![("Roomba".into(), 5).into()]
             .into_iter()
             .cycle()
             .take(amt)

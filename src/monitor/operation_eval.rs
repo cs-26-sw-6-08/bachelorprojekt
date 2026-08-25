@@ -121,16 +121,12 @@ pub(crate) fn eval_operations(
                 value_stack.push(0.into());
             }
             (DerivedStream::Sumtime { idx, .. }, Reduce) => {
-                let val1 = value_stack.pop_or_err()?;
-                let val2 = value_stack.pop_or_err()?;
-                let res = val1.clone() + val2.clone();
-                println!("iter: {:#?}, val = {res:#?}, cur = {val1:#?}, acc = {val2:#?}", time_stack.last().unwrap());
+                let res = value_stack.pop_or_err()? + value_stack.pop_or_err()?;
                 value_stack.push(res);
 
                 match time_stack.pop_or_err()? {
                     Element(v) => {
                         worklist_stack.extend([(cur_idx, Reduce), (*idx, Deepen)]);
-                        value_stack.push(0.into());
                         t_offset = v;
                     }
                     LayerShift => {

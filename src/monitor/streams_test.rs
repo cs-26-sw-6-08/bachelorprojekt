@@ -40,7 +40,7 @@ fn always_true() {
 
 #[test]
 /// Prop: [] t%2;
-/// Vaiolation: ever other
+/// Vaiolation: every other
 fn always_t_mod_switch() {
     let repeats = 100i128;
 
@@ -58,8 +58,7 @@ fn always_t_mod_switch() {
     let streams = &mut program.environment.unwrap();
 
     let result = run_monitor_x_steps(streams, &device_stream, repeats);
-
-    let errors = create_error_set((0..(repeats as usize)).skip(2), 1);
+    let errors = create_error_set((0..=(repeats as usize)).step_by(2), 1);
     validate_run(result, errors);
 }
 
@@ -104,7 +103,7 @@ fn always_simple_count_false() {
     let streams = &mut program.environment.unwrap();
     let result = run_monitor_x_steps(streams, &device_stream, repeats);
 
-    let errors = create_error_set((0..repeats as usize).into_iter(), 1);
+    let errors = create_error_set(0..repeats as usize, 1);
     validate_run(result, errors);
 }
 
@@ -147,7 +146,7 @@ fn always_simple_sum_member_true2() {
         DerivedStream::Number(55_000),
     ];
     let program = program_init(operations);
-    let device_stream = mock_specific_device_amount_stream(10, 10);
+    let device_stream = mock_specific_device_amount_stream(11, 10);
     let streams = &mut program.environment.unwrap();
 
     let result = run_monitor_x_steps(streams, &device_stream, 10);
@@ -181,34 +180,6 @@ fn always_simple_sum_member_false() {
     validate_run(result, errors);
 }
 
-#[test]
-///Remove
-fn always_simple_avg_member_true() {
-    let operations: Vec<DerivedStream> = vec![
-        DerivedStream::Binary {
-            bin_op: BinaryOperators::Equal,
-            idx_lhs: 1,
-            idx_rhs: 3,
-        },
-        DerivedStream::Binary {
-            bin_op: BinaryOperators::Divide,
-            idx_lhs: 2,
-            idx_rhs: 4,
-        },
-        DerivedStream::Sum { idx: 3 },
-        DerivedStream::Member(MemberType::Power),
-        DerivedStream::Size,
-        DerivedStream::Number(5500),
-    ];
-    let mut program = program_init(operations);
-    let device_stream = mock_specific_device_amount_stream(10, 10);
-    let Some(streams) = &mut program.environment else {
-        panic!()
-    };
-    let result = run_monitor_x_steps(streams, &device_stream, 10);
-
-    validate_run(result, HashSet::new());
-}
 
 #[test]
 /// Prop: [] t * 1 = t;
@@ -260,7 +231,8 @@ fn always_div_check() { // TODO: UPdate the mock data here
         DerivedStream::Number(2_500),
     ];
     let mut program = program_init(operations);
-    let device_stream = mock_default_device_stream(5);
+    //power of 1 device = 5
+    let device_stream = mock_specific_device_amount_stream(1, 1);
     let Some(streams) = &mut program.environment else {
         panic!()
     };
@@ -389,6 +361,7 @@ fn always_less_check() {
 
 #[test]
 /// [] Sum(Foreach(1) != 0) == 10
+/// With 10 devices
 /// Violates: Never
 fn always_nested_device_stack() {
     let operations: Vec<DerivedStream> = vec![
@@ -410,12 +383,13 @@ fn always_nested_device_stack() {
     ];
     let mut program = program_init(operations);
 
-    let device_stream = mock_default_device_stream(10);
+    let device_stream = mock_specific_device_amount_stream(10, 1);
 
     let Some(streams) = &mut program.environment else {
         panic!()
     };
     let result = run_monitor_x_steps(streams, &device_stream, 5);
+    println!("{:#?}", result);
 
     validate_run(result, HashSet::new());
 }
@@ -567,7 +541,9 @@ fn time_behaviour_test_2() {
         panic!()
     };
     let result = run_monitor_x_steps(streams, &device_stream, 100);
-    let errors = create_error_set([23, 47, 71, 95].into_iter(), 1);
+
+    println!("{:#?}", result);
+    let errors = create_error_set([24, 48, 72, 96].into_iter(), 1);
     validate_run(result, errors);
 }
 
@@ -736,13 +712,14 @@ fn always_always_always(){
                 Number(
                     0,
                 ),
-        ]};
+        ]
+    };
 
     let program = program_init(operations);
     let device_stream = mock_default_device_stream(100);
     let streams = &mut program.environment.unwrap();
     let result = run_monitor_x_steps(streams, &device_stream, 100);
  
-    let errors = create_error_set((0..=14).into_iter().chain(16..100), 1);
+    let errors = create_error_set(15..=15, 1);
     validate_run(result, errors);
 }

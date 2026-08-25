@@ -233,7 +233,7 @@ fn function_rules() {
                     },
                     DerivedStream::Sum { idx: 3 },
                     DerivedStream::Number(10_000),
-                    DerivedStream::Number(100 + 1)
+                    DerivedStream::Number((100 + 1) * 1_000)
                 ]
             ),
             _ => unreachable!(),

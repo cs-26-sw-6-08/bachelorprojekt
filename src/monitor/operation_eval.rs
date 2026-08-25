@@ -30,7 +30,7 @@ impl OutputStream {
 
 pub(crate) fn eval_operations(
     operations: &mut [DerivedStream],
-    devices: &IoTStream,
+    iot_stream: &IoTStream,
     t_spawn: &i128,
     t_current: &i128,
     //todo: Should this return verdict ???
@@ -67,11 +67,11 @@ pub(crate) fn eval_operations(
             }
             (DerivedStream::SpawnTime, Deepen) => {
                 //let offset_time = time_stack.last().ok_or(errors::Error::ArrayMissingValue)?;
-                value_stack.push(StreamValue::Number(Some(t_offset)));
+                value_stack.push(StreamValue::Number(Some(t_offset * 1_000)));
             }
             (DerivedStream::Size, Deepen) => value_stack.push(StreamValue::Number(Some(
-                devices
-                    .get_devices(*time_stack.last_or_err()?.unpack_element()? as usize)
+                iot_stream
+                    .get_devices(*time_stack.last_or_err()?.unpack_element()? as usize % iot_stream.size())
                     .len() as i128,
             ))),
 
@@ -80,8 +80,8 @@ pub(crate) fn eval_operations(
                 // let offset_time = time_stack.last_or_err()?.unpack_element()?;
 
                 device_stack.extend(
-                    devices
-                        .get_devices(t_offset as usize)
+                    iot_stream
+                        .get_devices(t_offset as usize % iot_stream.size())
                         .iter()
                         .map(StackElement::Element),
                 );
@@ -107,21 +107,24 @@ pub(crate) fn eval_operations(
             }
             (DerivedStream::Sumtime { interval_len, .. }, Deepen) => {
                 //let t_offset = *time_stack.last_or_err()?.unpack_element()?;
-                if *t_current >= t_offset + *interval_len {
+                if *t_current < t_offset + *interval_len {
                     value_stack.push(StreamValue::Number(None));
                     continue;
                 }
 
                 time_stack.push(Element(t_offset));
                 time_stack.push(LayerShift);
-                time_stack.extend((t_offset..t_offset + *interval_len).map(Element));
+                time_stack.extend((t_offset..=t_offset + *interval_len).rev().map(Element));
 
                 worklist_stack.push((cur_idx, Reduce));
                 value_stack.push(0.into());
                 value_stack.push(0.into());
             }
             (DerivedStream::Sumtime { idx, .. }, Reduce) => {
-                let res = value_stack.pop_or_err()? + value_stack.pop_or_err()?;
+                let val1 = value_stack.pop_or_err()?;
+                let val2 = value_stack.pop_or_err()?;
+                let res = val1.clone() + val2.clone();
+                println!("iter: {:#?}, val = {res:#?}, cur = {val1:#?}, acc = {val2:#?}", time_stack.last().unwrap());
                 value_stack.push(res);
 
                 match time_stack.pop_or_err()? {
@@ -138,7 +141,7 @@ pub(crate) fn eval_operations(
             (DerivedStream::Foreach { .. }, Deepen) => {
                 worklist_stack.push((cur_idx, Reduce));
                 device_stack.push(StackElement::LayerShift);
-                for d in devices.get_devices(t_offset as usize) {
+                for d in iot_stream.get_devices(t_offset as usize % iot_stream.size()) {
                     device_stack.push(d.into());
                 }
                 value_stack.push(StreamValue::Number(Some(true as i128)))

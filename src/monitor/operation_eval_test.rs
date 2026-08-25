@@ -51,7 +51,7 @@ fn aggregate_functions() {
             idx_rhs: 3,
         },
         DerivedStream::Member(MemberType::Power),
-        DerivedStream::Number(10),
+        DerivedStream::Number(10_000),
     ];
     let (spawn_t, cur_t) = (0, 1);
     let devices: IoTStream = mock_default_device_stream(3);
@@ -59,7 +59,7 @@ fn aggregate_functions() {
         .get_devices_own(1)
         .into_iter()
         .map(|mut device| {
-            device.power = 10;
+            device.power = 10_000;
             device
         })
         .collect::<Vec<_>>()
@@ -67,10 +67,10 @@ fn aggregate_functions() {
 
     assert_eq!(
         eval_operations(&mut sum, &devices_power_all_10, &spawn_t, &cur_t).unwrap(),
-        Some(30)
+        Some(30_000)
     );
     assert_eq!(
-        Some(10),
+        Some(10_000),
         eval_operations(
             &mut sum,
             &mock_specific_device_amount_stream(2, 3),
@@ -80,7 +80,7 @@ fn aggregate_functions() {
         .unwrap()
     );
     assert_eq!(
-        Some(20),
+        Some(20_000),
         eval_operations(
             &mut sum,
             &mock_specific_device_amount_stream(4, 3),
@@ -91,7 +91,7 @@ fn aggregate_functions() {
     );
     // (5 + 1 +  3) / 3 = 3
     assert_eq!(
-        Some(3),
+        Some(3_000),
         eval_operations(&mut avg, &devices, &spawn_t, &cur_t).unwrap()
     );
     assert_eq!(
@@ -99,7 +99,7 @@ fn aggregate_functions() {
         eval_operations(&mut foreach, &devices, &spawn_t, &cur_t).unwrap()
     );
     assert_eq!(
-        Some(1),
+        Some(1_000),
         eval_operations(&mut foreach, &devices_power_all_10, &spawn_t, &cur_t).unwrap()
     );
 }
@@ -133,7 +133,7 @@ fn ltl_expressions_bounded() {
     .into_iter()
     .chain(ops.clone())
     .collect::<Vec<_>>();
-    let devices: IoTStream = mock_default_device_stream(3).into();
+    let devices: IoTStream = mock_default_device_stream(3);
 
     assert_eq!(
         None,
@@ -147,6 +147,8 @@ fn ltl_expressions_bounded() {
         None,
         eval_operations(&mut always, &devices, &2, &3).unwrap()
     );
+    //todo: This line fails -> Is the logic correct? note: Maybe off by-one ? 
+    // 8 < 3 + 4 = 7
     assert_eq!(
         None,
         eval_operations(&mut always, &devices, &3, &8).unwrap()
@@ -173,7 +175,7 @@ fn ltl_expressions_bounded() {
 
 #[test]
 fn time_functions_unbounded() {
-    let devices = mock_default_device_stream(5).into();
+    let devices = mock_default_device_stream(5);
     let mut sumtime_unbounded = [
         DerivedStream::Sumtime {
             interval_len: 100,
@@ -182,13 +184,11 @@ fn time_functions_unbounded() {
         DerivedStream::Sum { idx: 2 },
         DerivedStream::Number(1_000),
     ];
-    let eval_res = (0..=2).try_fold(Some(0), |_, t_c| {
-        eval_operations(&mut sumtime_unbounded, &devices, &0, &t_c)
-    });
+
     assert_eq!(
         // StreamOutput::from(15_000).to_undecided(),
         None,
-        eval_res.unwrap()
+        eval_operations(&mut sumtime_unbounded, &devices, &0, &2).unwrap()
     );
     (3..100).for_each(|val| {
         assert_eq!(
@@ -203,21 +203,22 @@ fn time_functions_unbounded() {
         eval_operations(&mut sumtime_unbounded, &devices, &4, &4).unwrap()
     );
 
+    println!("{} / {}", eval_operations(&mut sumtime_unbounded, &devices, &0, &100).unwrap().unwrap(), 101_000);
     let mut avg_time = [
+        DerivedStream::Binary { bin_op: Divide, idx_lhs: 1, idx_rhs: 4 },
         DerivedStream::Sumtime {
             interval_len: 100,
-            idx: 1,
+            idx: 2,
         },
-        DerivedStream::Sum { idx: 2 },
+        DerivedStream::Sum { idx: 3 },
         DerivedStream::Number(1_000),
+        DerivedStream::Number(101_000)
     ];
-    let eval_res = (0..=100).try_fold(Some(0), |_, t_c| {
-        eval_operations(&mut avg_time, &devices, &0, &t_c)
-    });
     assert_eq!(
+        //(3 * 1 * 101) / 101 = 3
         // StreamOutput::from(15_000 / 3).to_undecided(),
-        None,
-        eval_res.unwrap()
+        Some(3_000),
+        eval_operations(&mut avg_time, &devices, &0, &100).unwrap()
     );
 
     let mut avg_time = [
@@ -239,7 +240,7 @@ fn time_functions_unbounded() {
 
 #[test]
 fn time_functions_bounded() {
-    let devices = mock_default_device_stream(5).into();
+    let devices = mock_default_device_stream(5);
     let mut sumtime_bounded = [
         DerivedStream::Sumtime {
             interval_len: 5,
@@ -249,6 +250,7 @@ fn time_functions_bounded() {
         DerivedStream::Number(1_000),
     ];
     //check whether value become decided when out of bounds
+    //todo: Because of new algorithm, i would argue this should be none
     let eval_res = (0..=6).try_fold(Some(0), |_, t_c| {
         eval_operations(&mut sumtime_bounded, &devices, &0, &t_c)
     });
@@ -263,7 +265,7 @@ fn time_functions_bounded() {
 /// This testcase is expected to return undecided because the eventually element returns false and is therefore undecided
 #[test]
 fn check_undecided_operations() {
-    let devices = mock_default_device_stream(3).into();
+    let devices = mock_default_device_stream(3);
     let bin_ops = {
         use BinaryOperators::*;
         [

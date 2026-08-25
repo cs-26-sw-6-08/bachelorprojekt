@@ -61,14 +61,18 @@ impl From<(String, i128)> for IoTDevice {
     }
 }
 #[derive(Debug, PartialEq, Clone)]
-pub struct IoTStream(Vec<Vec<IoTDevice>>);
+pub struct IoTStream(Vec<Vec<IoTDevice>>, usize);
 impl IoTStream {
     pub fn get_devices(&self, i: usize) -> &Vec<IoTDevice> {
         &self.0[i]
     }
     
     pub fn with_capacity(capacity: usize) -> Self {
-        Self(Vec::with_capacity(capacity))
+        Self(Vec::with_capacity(capacity), capacity)
+    }
+
+    pub fn size(&self) -> usize {
+        self.1
     }
 
     pub fn get_mut_devices(&mut self, i: usize) -> &mut Vec<IoTDevice> {
@@ -94,13 +98,14 @@ impl IoTStream {
 
 impl From<Vec<Vec<IoTDevice>>> for IoTStream {
     fn from(value: Vec<Vec<IoTDevice>>) -> Self {
-        Self(value)
+        let len = value.len(); 
+        Self(value, len)
     }
 }
 
 impl From<Vec<IoTDevice>> for IoTStream {
     fn from(value: Vec<IoTDevice>) -> Self {
-        Self(vec![value])
+        Self(vec![value], 1)
     }
 }
 

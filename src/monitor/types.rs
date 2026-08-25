@@ -184,12 +184,12 @@ impl<'a> StreamValue<'a> {
     pub fn equals(self, rhs: Self) -> Self {
         match (self, rhs) {
             (StreamValue::Number(Some(val1)), StreamValue::Number(Some(val2))) => {
-                StreamValue::Number(Some((val1 == val2) as i128))
+                StreamValue::Number(Some((val1 == val2) as i128 * 1_000))
             }
             (StreamValue::Number(None), StreamValue::Number(_))
             | (StreamValue::Number(_), StreamValue::Number(None)) => StreamValue::Number(None),
             (StreamValue::String(val1), StreamValue::String(val2)) => {
-                StreamValue::Number(Some((val1 == val2) as i128))
+                StreamValue::Number(Some((val1 == val2) as i128 * 1_000))
             }
             _ => unreachable!(),
         }
@@ -198,12 +198,12 @@ impl<'a> StreamValue<'a> {
     pub fn not_equals(self, rhs: Self) -> Self {
         match (self, rhs) {
             (StreamValue::Number(Some(val1)), StreamValue::Number(Some(val2))) => {
-                StreamValue::Number(Some((val1 != val2) as i128))
+                StreamValue::Number(Some((val1 != val2) as i128 * 1_000))
             }
             (StreamValue::Number(None), StreamValue::Number(_))
             | (StreamValue::Number(_), StreamValue::Number(None)) => StreamValue::Number(None),
             (StreamValue::String(val1), StreamValue::String(val2)) => {
-                StreamValue::Number(Some((val1 != val2) as i128))
+                StreamValue::Number(Some((val1 != val2) as i128 * 1_000))
             }
             _ => unreachable!(),
         }
@@ -249,7 +249,7 @@ impl<'a> StreamValue<'a> {
     pub fn less_than(self, rhs: Self) -> Self {
         match (self, rhs) {
             (StreamValue::Number(Some(val1)), StreamValue::Number(Some(val2))) => {
-                StreamValue::Number(Some((val1 < val2) as i128))
+                StreamValue::Number(Some((val1 < val2) as i128 * 1_000))
             }
             (StreamValue::Number(None), StreamValue::Number(_))
             | (StreamValue::Number(_), StreamValue::Number(None)) => StreamValue::Number(None),
@@ -260,7 +260,7 @@ impl<'a> StreamValue<'a> {
     pub fn less_equal(self, rhs: Self) -> Self {
         match (self, rhs) {
             (StreamValue::Number(Some(val1)), StreamValue::Number(Some(val2))) => {
-                StreamValue::Number(Some((val1 <= val2) as i128))
+                StreamValue::Number(Some((val1 <= val2) as i128 * 1_000))
             }
             (StreamValue::Number(None), StreamValue::Number(_))
             | (StreamValue::Number(_), StreamValue::Number(None)) => StreamValue::Number(None),
@@ -271,7 +271,7 @@ impl<'a> StreamValue<'a> {
     pub fn un_op(self, un_op: &UnaryOperators) -> Self {
         match un_op {
             UnaryOperators::Not => match self {
-                StreamValue::Number(Some(v)) => StreamValue::Number(Some((v == 0) as i128)),
+                StreamValue::Number(Some(v)) => StreamValue::Number(Some((v == 0) as i128 * 1_000)),
                 StreamValue::Number(None) => StreamValue::Number(None),
                 _ => unreachable!(),
             },

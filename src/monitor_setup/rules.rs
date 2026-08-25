@@ -175,7 +175,7 @@ impl Expr {
                                 interval_len: bound,
                             })
                             .chain(new_streams)
-                            .with(DerivedStream::Number(bound + 1)),
+                            .with(DerivedStream::Number((bound + 1) * 1_000)),
                         new_key + 1,
                     )
                 }

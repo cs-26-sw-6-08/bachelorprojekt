@@ -40,7 +40,7 @@ impl Expr {
                 (
                     streams
                         .with(DerivedStream::Miitl {
-                            bound: val.get_bound().map(|(a, b)| (a/1000, b / 1000))?,
+                            bound: val.get_bound().map(|(a, b)| (a / 1000, b / 1000))?,
                             idx: key + 1,
                             miitl_type: match self {
                                 Expr::Always { .. } => MIITLType::Always,
@@ -193,16 +193,18 @@ impl Expr {
     }
     fn stream_bound_rec(stream: &OutputStream, idx: usize) -> Result<usize, Box<dyn Error>> {
         use DerivedStream::*;
-    
+
         match &stream.derived_streams[idx] {
             Number(_) | String(_) | Member(_) | SpawnTime | Size => Ok(0),
-    
-            Sum { idx } | Foreach { idx } | Unary { idx, .. } => Expr::stream_bound_rec(stream, *idx),
-    
+
+            Sum { idx } | Foreach { idx } | Unary { idx, .. } => {
+                Expr::stream_bound_rec(stream, *idx)
+            }
+
             Sumtime {
                 idx, interval_len, ..
             } => Ok(Expr::stream_bound_rec(stream, *idx)? + *interval_len as usize),
-    
+
             Binary {
                 idx_lhs, idx_rhs, ..
             } => {
@@ -210,7 +212,7 @@ impl Expr {
                 let rhs = Expr::stream_bound_rec(stream, *idx_rhs)?;
                 Ok(lhs.max(rhs))
             }
-    
+
             Miitl { idx, bound, .. } => {
                 let (_, b) = bound;
                 Ok(Expr::stream_bound_rec(stream, *idx)? + *b as usize)

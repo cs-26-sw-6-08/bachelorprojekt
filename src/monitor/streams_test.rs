@@ -1,10 +1,15 @@
 use std::{collections::HashSet, vec};
 
 use crate::{
-    monitor_setup::operation_types::{DerivedStream, MIITLType::{self, Always}}, program::{
+    monitor_setup::operation_types::{
+        DerivedStream,
+        MIITLType::{self, Always},
+    },
+    program::{
         member_types::MemberType,
         operations::{BinaryOperators, UnaryOperators},
-    }, utils::test_helper_func::*,
+    },
+    utils::test_helper_func::*,
 };
 
 #[test]
@@ -180,7 +185,6 @@ fn always_simple_sum_member_false() {
     validate_run(result, errors);
 }
 
-
 #[test]
 /// Prop: [] t * 1 = t;
 /// Violation: Never
@@ -213,7 +217,8 @@ fn always_mul_check() {
 #[test]
 /// Sum(power) / 2 == 2.5
 /// Violates: Never
-fn always_div_check() { // TODO: UPdate the mock data here
+fn always_div_check() {
+    // TODO: UPdate the mock data here
     let operations: Vec<DerivedStream> = vec![
         DerivedStream::Binary {
             bin_op: BinaryOperators::Equal,
@@ -614,7 +619,7 @@ fn eventually_expr_true() {
         DerivedStream::Miitl {
             bound: (1, 1),
             idx: 1,
-            miitl_type: MIITLType::Eventually
+            miitl_type: MIITLType::Eventually,
         },
         DerivedStream::Number(1_000),
     ];
@@ -631,9 +636,13 @@ fn eventually_expr_true() {
 /// Violates: false once, then true always
 fn eventually_expr_false() {
     let operations = vec![
-            DerivedStream::Miitl { bound: (1,1), idx: 1, miitl_type: MIITLType::Eventually },
-            DerivedStream::Number(0)
-        ] ;
+        DerivedStream::Miitl {
+            bound: (1, 1),
+            idx: 1,
+            miitl_type: MIITLType::Eventually,
+        },
+        DerivedStream::Number(0),
+    ];
     let program = program_init(operations);
     let device_stream = mock_default_device_stream(100);
     let streams = &mut program.environment.unwrap();
@@ -650,68 +659,18 @@ fn eventually_expr_time_true() {
     let operations = {
         use DerivedStream::*;
         vec![
-            Miitl { bound: ( 2, 5 ), idx: 1, miitl_type: MIITLType::Eventually },
-            Binary {bin_op: BinaryOperators::NotEqual, idx_lhs: 2,idx_rhs: 3},
+            Miitl {
+                bound: (2, 5),
+                idx: 1,
+                miitl_type: MIITLType::Eventually,
+            },
+            Binary {
+                bin_op: BinaryOperators::NotEqual,
+                idx_lhs: 2,
+                idx_rhs: 3,
+            },
             SpawnTime,
             Number(2_000),
-        ]};
-
-    let program = program_init(operations);
-    let device_stream = mock_default_device_stream(100);
-    let streams = &mut program.environment.unwrap();
-    let result = run_monitor_x_steps(streams, &device_stream, 100);
-
-
-
-    let errors = create_error_set(2..5, 1);
-    validate_run(result, errors);
-
-}
-
-#[test]
-/// Prop: always (t = 0) -> (always[6,6](always[9,9]0));
-/// Violation: Gives vilolation at 15, and only 15
-fn always_always_always(){
-    let operations = {
-        use DerivedStream::*;
-        vec![
-            Binary {
-                    bin_op: BinaryOperators::Or,
-                    idx_lhs: 1,
-                    idx_rhs: 5,
-                },
-                Unary {
-                    un_op: UnaryOperators::Not,
-                    idx: 2,
-                },
-                Binary {
-                    bin_op: BinaryOperators::Equal,
-                    idx_lhs: 3,
-                    idx_rhs: 4,
-                },
-                SpawnTime,
-                Number(
-                    0,
-                ),
-                Miitl { 
-                    bound: (
-                        6,
-                        6,
-                    ),
-                    idx: 6,
-                    miitl_type: MIITLType::Always,
-                },
-                Miitl {
-                    bound: (
-                        9,
-                        9,
-                    ),
-                    idx: 7,
-                    miitl_type: MIITLType::Always,
-                },
-                Number(
-                    0,
-                ),
         ]
     };
 
@@ -719,7 +678,53 @@ fn always_always_always(){
     let device_stream = mock_default_device_stream(100);
     let streams = &mut program.environment.unwrap();
     let result = run_monitor_x_steps(streams, &device_stream, 100);
- 
+
+    let errors = create_error_set(2..5, 1);
+    validate_run(result, errors);
+}
+
+#[test]
+/// Prop: always (t = 0) -> (always[6,6](always[9,9]0));
+/// Violation: Gives vilolation at 15, and only 15
+fn always_always_always() {
+    let operations = {
+        use DerivedStream::*;
+        vec![
+            Binary {
+                bin_op: BinaryOperators::Or,
+                idx_lhs: 1,
+                idx_rhs: 5,
+            },
+            Unary {
+                un_op: UnaryOperators::Not,
+                idx: 2,
+            },
+            Binary {
+                bin_op: BinaryOperators::Equal,
+                idx_lhs: 3,
+                idx_rhs: 4,
+            },
+            SpawnTime,
+            Number(0),
+            Miitl {
+                bound: (6, 6),
+                idx: 6,
+                miitl_type: MIITLType::Always,
+            },
+            Miitl {
+                bound: (9, 9),
+                idx: 7,
+                miitl_type: MIITLType::Always,
+            },
+            Number(0),
+        ]
+    };
+
+    let program = program_init(operations);
+    let device_stream = mock_default_device_stream(100);
+    let streams = &mut program.environment.unwrap();
+    let result = run_monitor_x_steps(streams, &device_stream, 100);
+
     let errors = create_error_set(15..=15, 1);
     validate_run(result, errors);
 }

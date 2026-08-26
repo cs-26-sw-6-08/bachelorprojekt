@@ -67,7 +67,7 @@ impl IoTStream {
     pub fn get_devices(&self, i: usize) -> &Vec<IoTDevice> {
         &self.0[i]
     }
-    
+
     pub fn with_capacity(capacity: usize) -> Self {
         Self(Vec::with_capacity(capacity), capacity)
     }
@@ -99,7 +99,7 @@ impl IoTStream {
 
 impl From<Vec<Vec<IoTDevice>>> for IoTStream {
     fn from(value: Vec<Vec<IoTDevice>>) -> Self {
-        let len = value.len(); 
+        let len = value.len();
         Self(value, len)
     }
 }
@@ -109,4 +109,3 @@ impl From<Vec<IoTDevice>> for IoTStream {
         Self(vec![value], 1)
     }
 }
-

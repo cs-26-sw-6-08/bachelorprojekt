@@ -32,14 +32,19 @@ impl Instrumentation {
     }
 
     pub async fn fetch_device_states(&self) -> Vec<IoTDevice> {
-        let resp = self.client
+        let resp = self
+            .client
             .get(format!("{}/api/states", self.base_url))
             .send()
             .await;
-        if resp.is_err() { return Vec::new() }
-        let decoded = 
-            resp.unwrap().json::<Vec<HomeAssistantEntity>>()
-            .await.unwrap_or(Vec::new());
+        if resp.is_err() {
+            return Vec::new();
+        }
+        let decoded = resp
+            .unwrap()
+            .json::<Vec<HomeAssistantEntity>>()
+            .await
+            .unwrap_or(Vec::new());
 
         decoded
             .iter()
@@ -69,15 +74,10 @@ impl Instrumentation {
     }
 
     pub fn debug_fetch_devices(&self, i: usize) -> Vec<IoTDevice> {
-        let debug_array = [
-            [
-                ("christian".to_string(), 0).into()
-            ]
-        ];
+        let debug_array = [[("christian".to_string(), 0).into()]];
         let len = debug_array.len();
         debug_array[i % len].to_vec()
     }
-
 }
 
 #[derive(Debug, Serialize, Deserialize)]

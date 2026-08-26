@@ -71,7 +71,9 @@ pub(crate) fn eval_operations(
             }
             (DerivedStream::Size, Deepen) => value_stack.push(StreamValue::Number(Some(
                 iot_stream
-                    .get_devices(*time_stack.last_or_err()?.unpack_element()? as usize % iot_stream.size())
+                    .get_devices(
+                        *time_stack.last_or_err()?.unpack_element()? as usize % iot_stream.size(),
+                    )
                     .len() as i128,
             ))),
 

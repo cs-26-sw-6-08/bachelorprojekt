@@ -1,11 +1,17 @@
 use crate::{
-    monitor::{operation_eval::eval_operations, streams::IoTStream}, monitor_setup::operation_types::{
-        DerivedStream, MIITLType::{self, Eventually},
-    }, program::{
-        member_types::MemberType, operations::{
-            BinaryOperators::{self, Divide}, UnaryOperators,
+    monitor::{operation_eval::eval_operations, streams::IoTStream},
+    monitor_setup::operation_types::{
+        DerivedStream,
+        MIITLType::{self, Eventually},
+    },
+    program::{
+        member_types::MemberType,
+        operations::{
+            BinaryOperators::{self, Divide},
+            UnaryOperators,
         },
-    }, utils::test_helper_func::{mock_default_device_stream, mock_specific_device_amount_stream},
+    },
+    utils::test_helper_func::{mock_default_device_stream, mock_specific_device_amount_stream},
 };
 
 #[test]
@@ -147,7 +153,7 @@ fn ltl_expressions_bounded() {
         None,
         eval_operations(&mut always, &devices, &2, &3).unwrap()
     );
-    //todo: This line fails -> Is the logic correct? note: Maybe off by-one ? 
+    //todo: This line fails -> Is the logic correct? note: Maybe off by-one ?
     // 8 < 3 + 4 = 7
     assert_eq!(
         Some(1_000),
@@ -205,14 +211,18 @@ fn time_functions_unbounded() {
     );
 
     let mut avg_time = [
-        DerivedStream::Binary { bin_op: Divide, idx_lhs: 1, idx_rhs: 4 },
+        DerivedStream::Binary {
+            bin_op: Divide,
+            idx_lhs: 1,
+            idx_rhs: 4,
+        },
         DerivedStream::Sumtime {
             interval_len: 100,
             idx: 2,
         },
         DerivedStream::Sum { idx: 3 },
         DerivedStream::Number(1_000),
-        DerivedStream::Number(101_000)
+        DerivedStream::Number(101_000),
     ];
     assert_eq!(
         Some(3_000),
@@ -248,13 +258,12 @@ fn time_functions_bounded() {
         DerivedStream::Number(1_000),
     ];
     //check whether value become decided when out of bounds
-    //todo: Because of new algorithm, i would argue this should be none 
+    //todo: Because of new algorithm, i would argue this should be none
     let eval_res = eval_operations(&mut sumtime_bounded, &devices, &0, &4);
     assert_eq!(None, eval_res.unwrap());
 
     let eval_res = eval_operations(&mut sumtime_bounded, &devices, &0, &5);
     assert_eq!(Some(18_000), eval_res.unwrap());
-
 }
 
 /// This testcase is expected to return undecided because the eventually element returns false and is therefore undecided
@@ -278,7 +287,17 @@ fn check_undecided_operations() {
         ]
     };
     let expected_results = [
-        None, None, None, None, None, None, None, None, None, None, Some(1_000),
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        Some(1_000),
     ];
     for (op, expected_val) in bin_ops.into_iter().zip(expected_results) {
         let mut operations = [
@@ -403,7 +422,10 @@ fn binary_operations() {
             DerivedStream::Number(10_000),
             DerivedStream::Number(2_000),
         ];
-        println!("{op:#?}: exp: {expected_val:#?}, {:#?}", eval_operations(&mut operations, &devices, &0, &0).unwrap());
+        println!(
+            "{op:#?}: exp: {expected_val:#?}, {:#?}",
+            eval_operations(&mut operations, &devices, &0, &0).unwrap()
+        );
         assert_eq!(
             expected_val,
             eval_operations(&mut operations, &devices, &0, &0).unwrap()

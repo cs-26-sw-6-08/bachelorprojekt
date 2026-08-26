@@ -311,12 +311,17 @@ fn iot_stream_len() {
         interval_expr(custom_number_expr(5_000), custom_number_expr(50_000)),
         num.clone(),
     );
-    let trd_st = function_expr(FunctionType::Sumtime, num, Some(custom_number_expr(201_000)));
+    let trd_st = function_expr(
+        FunctionType::Sumtime,
+        num,
+        Some(custom_number_expr(201_000)),
+    );
 
-    let large_expr: OutputStream = binary_expr(fst_always, binary_expr(snd_eventually, trd_st, Or), Or)
-        .compile_expression()
-        .unwrap()
-        .into();
+    let large_expr: OutputStream =
+        binary_expr(fst_always, binary_expr(snd_eventually, trd_st, Or), Or)
+            .compile_expression()
+            .unwrap()
+            .into();
 
     assert_eq!(Expr::stream_max_bound(&large_expr).unwrap(), 201)
 }
@@ -334,10 +339,7 @@ fn iot_stream_len_2() {
         fst_always,
     );
 
-
-    let large_expr: OutputStream = snd_always.compile_expression()
-        .unwrap()
-        .into();
+    let large_expr: OutputStream = snd_always.compile_expression().unwrap().into();
 
     assert_eq!(Expr::stream_max_bound(&large_expr).unwrap(), 400)
 }
@@ -347,10 +349,7 @@ fn iot_stream_len_3() {
     //[] [][5,200] 1 | <>[5,50] 1 | sumtime[201] 1
     let num = custom_number_expr(1);
 
-
-    let large_expr: OutputStream = num.compile_expression() 
-        .unwrap()
-        .into();
+    let large_expr: OutputStream = num.compile_expression().unwrap().into();
 
     assert_eq!(Expr::stream_max_bound(&large_expr).unwrap(), 0)
 }

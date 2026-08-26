@@ -12,7 +12,7 @@ use crate::{
 fn test_constants() {
     let mut operations = [DerivedStream::Number(4_000), DerivedStream::SpawnTime];
     let (spawn_t, cur_t) = (0, 1);
-    let devices = mock_default_device_stream(1).into();
+    let devices = mock_default_device_stream(1);
     assert_eq!(
         Some(4_000),
         eval_operations(&mut operations[0..1], &devices, &spawn_t, &cur_t).unwrap()
@@ -337,7 +337,7 @@ fn check_undecided_operations() {
 
 #[test]
 fn test_edge_case_modulo() {
-    let devices = mock_default_device_stream(1).into();
+    let devices = mock_default_device_stream(1);
     let mut modulo = [
         DerivedStream::Binary {
             bin_op: BinaryOperators::Mod,
@@ -363,7 +363,7 @@ fn test_edge_case_modulo() {
 
 #[test]
 fn binary_operations() {
-    let devices = mock_default_device_stream(3).into();
+    let devices = mock_default_device_stream(3);
     let bin_ops = {
         use BinaryOperators::*;
         [
@@ -413,7 +413,7 @@ fn binary_operations() {
 
 #[test]
 fn unary_operations_test() {
-    let devices = mock_default_device_stream(3).into();
+    let devices = mock_default_device_stream(3);
 
     let mut negate_ops = [
         DerivedStream::Unary {

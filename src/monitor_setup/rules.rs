@@ -1,6 +1,5 @@
 use crate::errors;
 use crate::monitor::streams::OutputStream;
-use crate::monitor::types::StepType;
 use crate::utils::vec_helper_funcs::ExtVec;
 use crate::{
     monitor_setup::operation_types::{DerivedStream, MIITLType},
@@ -216,8 +215,6 @@ impl Expr {
                 let (_, b) = bound;
                 Ok(Expr::stream_bound_rec(stream, *idx)? + *b as usize)
             }
-    
-            _ => unreachable!(),
         }
     }
 }

@@ -19,7 +19,7 @@ fn always_false() {
     let streams = &mut program.environment.unwrap();
     let result = run_monitor_x_steps(streams, &device_stream, repeats);
 
-    let errors = create_error_set((0..repeats as usize).into_iter(), 1);
+    let errors = create_error_set(0..repeats as usize, 1);
     validate_run(result, errors);
 }
 
@@ -663,7 +663,7 @@ fn eventually_expr_time_true() {
 
 
 
-    let errors = create_error_set((2..5).into_iter(), 1);
+    let errors = create_error_set(2..5, 1);
     validate_run(result, errors);
 
 }

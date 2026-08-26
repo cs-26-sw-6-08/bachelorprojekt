@@ -1,4 +1,4 @@
-use crate::{errors, monitor::types::Verdict, monitor_setup::operation_types::DerivedStream};
+use crate::{monitor::types::Verdict, monitor_setup::operation_types::DerivedStream};
 
 #[derive(Debug, PartialEq)]
 pub struct OutputStream {

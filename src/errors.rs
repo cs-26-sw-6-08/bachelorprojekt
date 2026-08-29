@@ -33,16 +33,16 @@ pub enum Error {
     #[error("Invalid Function Interval Expression")]
     InvalidFunctionIntervalExpr,
 
-    #[error("Value Stack error: Not enough values in stack")]
-    ValueStackPop,
+    #[error("Array Missing value")]
+    ArrayMissingValue,
     #[error("Invalid Device Pointer Assignment")]
     DevicePointer,
     #[error("Value Stack Error: Not the correct value type")]
     ValueStackVal,
-    #[error("Illegal operation during evaluation")]
-    IllegalOperation,
-    #[error("The environment have not been set for the program")]
-    EnvironmentNotPresent
+    #[error("The environment/device_len has not been set for the program")]
+    FieldNotPresent,
+     #[error("Value Stack Error: Expected a stack Element<T> got LayerShift")]
+    WrongEnumType,
 }
 
 impl PartialEq for Error {

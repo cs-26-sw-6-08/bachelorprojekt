@@ -2,7 +2,7 @@ use std::error::Error;
 
 use hime_redist::{ast::AstNode, errors::ParseErrorDataTrait};
 
-use crate::{errors, grammar::cfg, monitor::streams::PropertyStream, program::expressions::SpannedExpr};
+use crate::{errors, grammar::cfg, monitor::streams::OutputStream, program::expressions::SpannedExpr};
 pub mod expressions;
 pub mod units;
 pub mod operations;
@@ -14,7 +14,8 @@ mod program_test;
 #[derive(PartialEq, Debug)]
 pub struct Program {
     pub expressions: Vec<SpannedExpr>,
-    pub environment: Option<Vec<PropertyStream>>,
+    pub environment: Option<Vec<OutputStream>>,
+    pub iotstream_len: Option<usize>
 }
 
 impl Program {
@@ -35,7 +36,7 @@ impl Program {
 
         }
 
-        let program = Program { expressions: exprs, environment: None };
+        let program = Program { expressions: exprs, environment: None, iotstream_len: None };
         Ok(program)
     }
 }

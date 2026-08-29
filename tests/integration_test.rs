@@ -16,7 +16,7 @@ use rv_iot::{
 #[test]
 fn test1() {
     let mut program =
-        Program::new("always (t % 24h = 0s) -> always[0h,24h] sumtime[5s](power) < 10 kWh;")
+        Program::new("always (t % 24h = 0s) -> always[0h:24h] sumtime[5s](power) < 10 kWh;")
             .unwrap();
 
     assert!(program.unit_convert().is_ok());
@@ -97,7 +97,7 @@ fn test2() {
 
 #[test]
 fn test3() {
-    let mut program = Program::new("always foreach(power/1w -> eventually[0h,6h] !(power/1w));").unwrap();
+    let mut program = Program::new("always foreach(power/1w -> eventually[0h:6h] !(power/1w));").unwrap();
 
     assert!(program.unit_convert().is_ok());
     assert!(program.unit_check().is_ok());
@@ -170,7 +170,7 @@ fn test4() {
 #[test]
 fn test5() {
     let mut program =
-        Program::new("always count(power) >= 5 -> eventually[0h,6h] count(power) < 5;").unwrap();
+        Program::new("always count(power) >= 5 -> eventually[0h:6h] count(power) < 5;").unwrap();
 
     assert!(program.unit_convert().is_ok());
     assert!(program.unit_check().is_ok());

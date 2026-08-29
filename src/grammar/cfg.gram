@@ -35,7 +35,7 @@ grammar cfg
 
     MIITLStart -> ('always' | '!' 'eventually')^ Expr;
 
-    Interval -> '['!ExprA','!ExprA']'!;
+    Interval -> '['!ExprA':'!ExprA']'!;
     ExprA  -> ExprA '+'^ ExprA1 | ExprA '-'^ ExprA1 | ExprA1^;
     ExprA1 -> ExprA1 '*'^ ExprA2 | ExprA1 '/'^ ExprA2 | ExprA1 '%'^ ExprA2 | ExprA2^;
     ExprA2 -> '('! ExprA^ ')'! | ExprA3^;

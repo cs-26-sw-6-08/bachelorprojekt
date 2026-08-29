@@ -106,7 +106,7 @@ pub const TERMINALS: &[Symbol] = &[
     },
     Symbol {
         id: 0x0032,
-        name: ","
+        name: ":"
     },
     Symbol {
         id: 0x0033,

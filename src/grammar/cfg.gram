@@ -5,7 +5,7 @@ grammar cfg
 {
   options
   {
-    Axiom = "Program"; // the top variable for this grammar
+    Axiom = "Formula"; // the top variable for this grammar
     Separator = "SEPARATOR"; // the terminal that represent white space
   }
   terminals
@@ -31,7 +31,7 @@ grammar cfg
   }
   rules
   {
-    Program  -> (MIITLStart';'!)+;
+    Formula  -> (MIITLStart';'!)+;
 
     MIITLStart -> ('always' | '!' 'eventually')^ Expr;
 

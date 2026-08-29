@@ -226,8 +226,8 @@ fn new_lexer<'a: 'b, 'b, 'c>(
 /// Static resource for the serialized parser automaton
 static PARSER_AUTOMATON: &[u8] = include_bytes!("cfg_parser.bin");
 
-/// The unique identifier for variable `Program`
-pub const ID_VARIABLE_PROGRAM: u32 = 0x0010;
+/// The unique identifier for variable `Formula`
+pub const ID_VARIABLE_FORMULA: u32 = 0x0010;
 /// The unique identifier for variable `MIITLStart`
 pub const ID_VARIABLE_MIITLSTART: u32 = 0x0011;
 /// The unique identifier for variable `Interval`
@@ -290,7 +290,7 @@ pub const ID_VARIABLE_MEMBER: u32 = 0x002B;
 pub const VARIABLES: &[Symbol] = &[
     Symbol {
         id: 0x0010,
-        name: "Program"
+        name: "Formula"
     },
     Symbol {
         id: 0x0011,
@@ -476,7 +476,7 @@ pub trait Visitor {
     fn on_terminal_powerunit(&self, node: &AstNode) {}
     fn on_terminal_bool(&self, node: &AstNode) {}
     fn on_terminal_time(&self, node: &AstNode) {}
-    fn on_variable_program(&self, node: &AstNode) {}
+    fn on_variable_formula(&self, node: &AstNode) {}
     fn on_variable_miitlstart(&self, node: &AstNode) {}
     fn on_variable_interval(&self, node: &AstNode) {}
     fn on_variable_expr_a(&self, node: &AstNode) {}
@@ -528,7 +528,7 @@ pub fn visit_ast_node(node: AstNode, visitor: &dyn Visitor) {
         0x000D => visitor.on_terminal_powerunit(&node),
         0x000E => visitor.on_terminal_bool(&node),
         0x000F => visitor.on_terminal_time(&node),
-        0x0010 => visitor.on_variable_program(&node),
+        0x0010 => visitor.on_variable_formula(&node),
         0x0011 => visitor.on_variable_miitlstart(&node),
         0x0012 => visitor.on_variable_interval(&node),
         0x0013 => visitor.on_variable_expr_a(&node),

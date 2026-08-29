@@ -1,5 +1,5 @@
 pub const PROPERTY1: &str =
-r#"Program
+r#"Formula
 +-> always = always
     +-> -> = ->
         +-> = = =
@@ -26,7 +26,7 @@ r#"Program
 "#;
 
 pub const PROPERTY2: &str =
-r#"Program
+r#"Formula
 +-> eventually = eventually
     +-> ! = !
     +-> > = >
@@ -36,7 +36,7 @@ r#"Program
 "#;
 
 pub const PROPERTY3: &str =
-r#"Program
+r#"Formula
 +-> always = always
     +-> foreach = foreach
         +-> -> = ->
@@ -52,7 +52,7 @@ r#"Program
 "#;
 
 pub const PROPERTY4: &str =
-r#"Program
+r#"Formula
 +-> always = always
     +-> count = count
         +-> & = &
@@ -63,7 +63,7 @@ r#"Program
 "#;
 
 pub const PROPERTY5: &str =
-r#"Program
+r#"Formula
 +-> always = always
     +-> -> = ->
         +-> >= = >=
@@ -83,7 +83,7 @@ r#"Program
 "#;
 
 pub const PROPERTY6: &str =
-r#"Program
+r#"Formula
 +-> always = always
     +-> <= = <=
         +-> sum = sum
@@ -95,7 +95,7 @@ r#"Program
 "#;
 
 pub const PROPERTY7: &str =
-r#"Program
+r#"Formula
 +-> always = always
 |   +-> NUMBER = 7
 +-> always = always
